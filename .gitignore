@@ -1,0 +1,46 @@
+*.iml
+.gradle
+/local.properties
+/.idea/caches
+/.idea/libraries
+/.idea/modules.xml
+/.idea/workspace.xml
+/.idea/navEditor.xml
+/.idea/assetWizardSettings.xml
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+local.properties
+oracleJdk-27/
+
+# Python cache and virtual environments
+__pycache__/
+*.py[cod]
+*.pyd
+*.pyo
+.venv/
+venv/
+env/
+
+# Build outputs
+build/
+dist/
+*.spec
+
+# Tool caches
+.pytest_cache/
+.mypy_cache/
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Runtime logs
+*.log
+
+# Runtime temp data
+.tmp/

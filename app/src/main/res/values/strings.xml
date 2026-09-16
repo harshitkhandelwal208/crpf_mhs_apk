@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">CRPF MHS</string>
+    <string name="role_personnel_active">PERSONNEL ACCOUNT  |  ACTIVE</string>
+    <string name="welcome_greeting">%1$s, %2$s</string>
+    <string name="error_enter_credentials">Enter your email address and password.</string>
+    <string name="error_invalid_credentials">The email or password is not recognised.</string>
+    <string name="error_generic_login">Unable to sign in right now. Please try again.</string>
+    <string name="error_connection">Cannot reach CRPF MHS. Check your connection and try again.</string>
+    <string name="error_session_expired">Your session has expired. Please sign in again.</string>
+    <string name="error_personnel_only">This employee app is for personnel accounts only. Use the separate CRPF MHS admin website for administrator access.</string>
+    <string name="error_load_profile">Cannot load your profile. Check your connection and try again.</string>
+    <string name="msg_signed_out">You have been signed out.</string>
+    <string name="status_signing_in">Signing in&#8230;</string>
+    <string name="action_continue_dashboard">Continue to my dashboard</string>
+</resources>

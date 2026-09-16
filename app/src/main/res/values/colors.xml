@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="purple_200">#FFB8C7E1</color>
+    <color name="purple_500">#FF102A5C</color>
+    <color name="purple_700">#FF071735</color>
+    <color name="teal_200">#FF8DD8C8</color>
+    <color name="teal_700">#FF2B9D8F</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="screen_background">#FFF2F5FA</color>
+    <color name="ink">#FF10213F</color>
+    <color name="muted_ink">#FF62718A</color>
+    <color name="line">#FFD7E0ED</color>
+    <color name="success">#FF23856F</color>
+    <color name="warning">#FFC7862B</color>
+    <color name="warning_surface">#FFFFF2DE</color>
+    <color name="teal_surface">#FFE5F4EF</color>
+    <color name="surface_warm">#FFFFFBF5</color>
+    <color name="auth_navy">#FF0B1F4D</color>
+    <color name="auth_overlay">#E60B1F4D</color>
+    <color name="auth_surface">#FFF7F4EE</color>
+    <color name="auth_text">#FF0B1A36</color>
+    <color name="auth_muted">#FF4C607A</color>
+</resources>

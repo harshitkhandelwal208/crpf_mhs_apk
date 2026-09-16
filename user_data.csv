@@ -1,0 +1,7 @@
+timestamp,session_id,username,operation,input_preview,input_size,output_size,status,details
+2026-04-23 22:36:16,8ed3cbb7,John,encrypt_text,hi ,3,8,success,3 chars encrypted
+2026-04-23 22:36:21,8ed3cbb7,John,decrypt_text,"$:""'??",8,3,success,3 chars recovered
+2026-04-23 22:36:25,8ed3cbb7,John,decrypt_text,"$:""'?",7,3,success,3 chars recovered
+2026-04-23 22:36:26,8ed3cbb7,John,decrypt_text,"$:""'?",7,3,success,3 chars recovered
+2026-04-23 22:36:28,8ed3cbb7,John,decrypt_text,"$:""",4,2,success,2 chars recovered
+2026-04-23 22:36:38,8ed3cbb7,John,decrypt_text,"$:""'??",8,3,success,3 chars recovered

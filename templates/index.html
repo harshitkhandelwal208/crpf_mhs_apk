@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CipherVault Web</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css', v=asset_v) }}">
+</head>
+<body data-active-tab="{{ active_tab }}">
+  <div class="background-orb orb-a"></div>
+  <div class="background-orb orb-b"></div>
+
+  <main class="shell">
+    <header class="hero">
+      <p class="eyebrow">CipherVault</p>
+      <h1>Encryption Suite on the Web</h1>
+      <p class="subtitle">Encrypt and decrypt text or images directly in your browser.</p>
+    </header>
+
+    <nav class="tabs" aria-label="Sections">
+      <button type="button" class="tab-btn" data-tab="text">Text Cipher</button>
+      <button type="button" class="tab-btn" data-tab="image">Image Cipher</button>
+    </nav>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <section class="alerts">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </section>
+      {% endif %}
+    {% endwith %}
+
+    <section id="panel-text" class="panel {% if active_tab != 'text' %}is-hidden{% endif %}">
+      <div class="grid two-col">
+        <article class="card">
+          <h2>Encrypt Text</h2>
+          <form method="post" action="/text/encrypt">
+            <label for="encrypt_input">Plain text</label>
+            <textarea id="encrypt_input" name="encrypt_input" rows="7" placeholder="Enter text to encrypt">{{ encrypt_input }}</textarea>
+            <button class="action-btn" type="submit">Encrypt</button>
+          </form>
+          <div class="result">
+            <h3>Encrypted Output</h3>
+            <textarea rows="7" readonly placeholder="Encrypted text appears here">{{ encrypt_output }}</textarea>
+            <p class="hint">Tokens are displayed with spaces for readability.</p>
+          </div>
+        </article>
+
+        <article class="card">
+          <h2>Decrypt Text</h2>
+          <form method="post" action="/text/decrypt">
+            <label for="decrypt_input">Cipher text</label>
+            <textarea id="decrypt_input" name="decrypt_input" rows="7" placeholder="Paste encrypted tokens here">{{ decrypt_input }}</textarea>
+            <button class="action-btn alt" type="submit">Decrypt</button>
+          </form>
+          <div class="result">
+            <h3>Decrypted Output</h3>
+            <textarea rows="7" readonly placeholder="Decrypted result appears here">{{ decrypt_output }}</textarea>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="panel-image" class="panel {% if active_tab != 'image' %}is-hidden{% endif %}">
+      <div class="grid two-col">
+        <article class="card">
+          <h2>Encrypt Image</h2>
+          <p class="hint">Upload one image and download a zip containing encrypted image + metadata.</p>
+          <form method="post" action="/image/encrypt" enctype="multipart/form-data">
+            <label for="source_image">Source image</label>
+            <input id="source_image" name="source_image" type="file" accept=".png,.jpg,.jpeg,.bmp,.gif,.tiff,.tif,.webp" required>
+            <button class="action-btn" type="submit">Encrypt Image</button>
+          </form>
+        </article>
+
+        <article class="card">
+          <h2>Decrypt Image</h2>
+          <p class="hint">Upload the encrypted `.png` and its matching `.meta` file.</p>
+          <form method="post" action="/image/decrypt" enctype="multipart/form-data">
+            <label for="encrypted_image">Encrypted image (.png)</label>
+            <input id="encrypted_image" name="encrypted_image" type="file" accept=".png" required>
+
+            <label for="meta_file">Metadata (.meta)</label>
+            <input id="meta_file" name="meta_file" type="file" accept=".meta,.txt" required>
+
+            <button class="action-btn alt" type="submit">Decrypt Image</button>
+          </form>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function () {
+      const active = document.body.dataset.activeTab || "text";
+      const buttons = document.querySelectorAll(".tab-btn");
+      const panels = {
+        text: document.getElementById("panel-text"),
+        image: document.getElementById("panel-image"),
+      };
+
+      function activate(tab) {
+        buttons.forEach((btn) => {
+          const enabled = btn.dataset.tab === tab;
+          btn.classList.toggle("active", enabled);
+        });
+        Object.keys(panels).forEach((key) => {
+          if (!panels[key]) return;
+          panels[key].classList.toggle("is-hidden", key !== tab);
+        });
+      }
+
+      buttons.forEach((btn) => {
+        btn.addEventListener("click", () => activate(btn.dataset.tab));
+      });
+
+      activate(active);
+    })();
+  </script>
+</body>
+</html>
