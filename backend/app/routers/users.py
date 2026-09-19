@@ -26,7 +26,10 @@ async def get_current_user_profile(
     current_user: User = Depends(get_current_user),
 ):
     """Get the authenticated user's profile."""
-    return current_user
+    res = UserResponse.model_validate(current_user)
+    if not res.name:
+        res.name = current_user.full_name
+    return res
 
 
 @router.get("", response_model=list[UserResponse])

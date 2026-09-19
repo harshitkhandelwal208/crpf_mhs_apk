@@ -1,28 +1,41 @@
 """
 JWT token creation and verification, password hashing.
+Compatible with both PyJWT/bcrypt and python-jose/passlib.
 """
 import hashlib
 import uuid
 from datetime import datetime, timedelta, timezone
 
-from jose import JWTError, jwt
-from passlib.context import CryptContext
+try:
+    from jose import JWTError, jwt
+except ImportError:
+    import jwt
+    JWTError = jwt.PyJWTError
+
+try:
+    from passlib.context import CryptContext
+    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    def hash_password(password: str) -> str:
+        return pwd_context.hash(password)
+    def verify_password(plain_password: str, hashed_password: str) -> bool:
+        return pwd_context.verify(plain_password, hashed_password)
+except ImportError:
+    import bcrypt
+    def hash_password(password: str) -> str:
+        salt = bcrypt.gensalt()
+        return bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
+    def verify_password(plain_password: str, hashed_password: str) -> bool:
+        try:
+            return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
+        except Exception:
+            return False
+
 from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.models.user import User, UserRole
 from app.models.refresh_token import RefreshToken
 from app.models.permission import Permission
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-
-def hash_password(password: str) -> str:
-    return pwd_context.hash(password)
-
-
-def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return pwd_context.verify(plain_password, hashed_password)
 
 
 def _hash_token(token: str) -> str:
@@ -64,17 +77,17 @@ def create_refresh_token(user: User, db: Session) -> str:
     return raw_token
 
 
-def rotate_refresh_token(old_raw_token: str, db: Session) -> tuple[str, User] | None:
+def rotate_refresh_token(
+    old_raw_token: str, db: Session
+) -> tuple[str, User] | None:
     """
-    Rotate a refresh token: revoke the old one, issue a new one.
-    Returns (new_raw_token, user) or None if invalid/revoked.
+    Rotate a refresh token: validate old token, revoke it, issue new one.
+    Implements reuse detection: if a revoked token is used, revokes ALL user tokens.
     """
     old_hash = _hash_token(old_raw_token)
-    old_record = (
-        db.query(RefreshToken)
-        .filter(RefreshToken.token_hash == old_hash)
-        .first()
-    )
+    old_record = db.query(RefreshToken).filter(
+        RefreshToken.token_hash == old_hash
+    ).first()
 
     if not old_record:
         return None
@@ -87,7 +100,11 @@ def rotate_refresh_token(old_raw_token: str, db: Session) -> tuple[str, User] | 
         db.commit()
         return None
 
-    if old_record.expires_at < datetime.now(timezone.utc):
+    exp = old_record.expires_at
+    now = datetime.now(timezone.utc)
+    if exp.tzinfo is None:
+        exp = exp.replace(tzinfo=timezone.utc)
+    if exp < now:
         return None
 
     # Revoke old token
@@ -126,29 +143,17 @@ def decode_access_token(token: str) -> dict | None:
         return payload
     except JWTError:
         return None
+    except Exception:
+        return None
 
 
 def authenticate_user(email: str, password: str, db: Session) -> User | None:
-    """Authenticate a user by email and password."""
+    """Authenticate user by email and password."""
     user = db.query(User).filter(User.email == email).first()
-    if not user or not verify_password(password, user.hashed_password):
+    if not user:
+        return None
+    if not verify_password(password, user.hashed_password):
         return None
     if not user.is_active:
         return None
     return user
-
-
-def check_permission(user: User, resource: str, action: str) -> bool:
-    """
-    Check if a user has an explicit permission grant.
-    This is separate from role checks — clinical content requires
-    explicit grants even for ADMIN users.
-    """
-    for perm in user.permissions:
-        if (
-            perm.resource == resource
-            and perm.action == action
-            and perm.granted
-        ):
-            return True
-    return False

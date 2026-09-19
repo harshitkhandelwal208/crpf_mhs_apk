@@ -42,6 +42,8 @@ class User(Base):
         SAEnum(UserRole), nullable=False, default=UserRole.PERSONNEL
     )
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
+    onboarding_complete: Mapped[bool] = mapped_column(Boolean, default=True)
+    mfa_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
@@ -53,8 +55,9 @@ class User(Base):
     )
 
     # Relationships
-    permissions = relationship("Permission", back_populates="user", lazy="selectin")
+    permissions = relationship("Permission", back_populates="user", foreign_keys="Permission.user_id", lazy="selectin")
     refresh_tokens = relationship("RefreshToken", back_populates="user", lazy="select")
+    personnel = relationship("Personnel", back_populates="user", uselist=False, lazy="select")
 
     def has_minimum_role(self, required_role: UserRole) -> bool:
         """Check if user's role meets the minimum required role level."""

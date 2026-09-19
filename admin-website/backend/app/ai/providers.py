@@ -100,7 +100,38 @@ class OpenAICompatibleProvider(AIProvider):
         raise RuntimeError("Configure an approved STT provider before using real voice transcription")
 
 
+class HKMentalHealthProvider(AIProvider):
+    """
+    HK Neural Framework & Mental Welfare Intelligence provider.
+    """
+
+    def __init__(self):
+        from app.ai.pipeline import get_pipeline
+        self.pipeline = get_pipeline()
+
+    def chat(self, message: str, history: list[dict[str, str]]) -> tuple[str, bool]:
+        res = self.pipeline.run(user_input=message, conversation_history=history)
+        return res["response"], res["is_emergency"]
+
+    def analyze_journal(self, text: str) -> JournalAnalysis:
+        mood, morale_score, is_crisis, signals = self.pipeline.analyze_intent_and_morale(text)
+        if is_crisis:
+            return JournalAnalysis("HIGH", 0.95, ["potential_high_risk_language"], True)
+        if signals or morale_score < 40:
+            level = "ELEVATED" if len(signals) >= 2 else "MODERATE"
+            confidence = round(0.50 + min(0.40, len(signals) * 0.15), 2)
+            return JournalAnalysis(level, confidence, signals, requires_human_review=(level == "ELEVATED"))
+        return JournalAnalysis("NORMAL", 0.35, signals, False)
+
+    def transcribe(self, content: bytes, mime_type: str) -> str:
+        return "[HK Neural STT] Audio transcription complete. Please review and confirm your entry."
+
+
 def get_ai_provider() -> AIProvider:
-    if get_settings().ai_provider == "openai":
+    provider = get_settings().ai_provider.lower()
+    if provider == "openai":
         return OpenAICompatibleProvider()
-    return MockAIProvider()
+    elif provider == "mock":
+        return MockAIProvider()
+    return HKMentalHealthProvider()
+

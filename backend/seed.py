@@ -18,6 +18,8 @@ from app.models.alert import Alert, AlertSeverity, AlertStatus, AlertType
 from app.models.journal import Journal
 from app.models.assessment import Assessment, AssessmentType
 from app.models.permission import Permission
+from app.models.support import EmergencyContact, Resource
+from app.models.ai import AIConversation, AIMessage
 from app.auth.security import hash_password
 
 
@@ -136,16 +138,18 @@ def seed():
                                     "performance_decline"]
                 risk_factors = random.sample(possible_factors, k=random.randint(1, 3))
 
+            personnel1_user = db.query(User).filter(User.email == "personnel1@sentinel.mil").first()
             p = Personnel(
-                service_number=f"SN-{10000 + i:05d}",
-                first_name=random.choice(first_names),
-                last_name=random.choice(last_names),
-                rank=random.choice(ranks),
-                unit=random.choice(units),
-                status=status,
-                risk_level=risk_level,
-                risk_score=round(risk_score, 1),
-                risk_factors=",".join(risk_factors) if risk_factors else None,
+                user_id=personnel1_user.id if i == 0 else None,
+                service_number="CRPF-PERS01" if i == 0 else f"SN-{10000 + i:05d}",
+                first_name="Mike" if i == 0 else random.choice(first_names),
+                last_name="Johnson" if i == 0 else random.choice(last_names),
+                rank="Sgt." if i == 0 else random.choice(ranks),
+                unit="Alpha Company, 1st Battalion" if i == 0 else random.choice(units),
+                status=PersonnelStatus.ACTIVE if i == 0 else status,
+                risk_level=RiskLevel.LOW if i == 0 else risk_level,
+                risk_score=15.0 if i == 0 else round(risk_score, 1),
+                risk_factors=",".join(risk_factors) if (risk_factors and i != 0) else None,
                 last_check_in=now - timedelta(hours=random.randint(1, 72)),
                 phone=f"+1-555-{random.randint(100, 999)}-{random.randint(1000, 9999)}",
             )
@@ -253,11 +257,47 @@ def seed():
                 )
                 db.add(assessment)
 
+        # ── Emergency Contacts & Resources ────────────────────
+        print("Seeding emergency contacts and resources...")
+        contacts = [
+            EmergencyContact(label="CRPF 24/7 Welfare Helpline", description="Round-the-clock confidential support for personnel & families", contact="1800-11-2024", sort_order=1),
+            EmergencyContact(label="Unit Medical Officer (UMO)", description="Base Medical Station & Emergency Triage Officer", contact="Duty Extension 102", sort_order=2),
+            EmergencyContact(label="Tele-MANAS Mental Health Line", description="Ministry of Health National Tele Mental Health Helpline", contact="14416 / 1800-891-4416", sort_order=3),
+            EmergencyContact(label="Vandrevala Foundation Helpline", description="Confidential mental health & crisis intervention", contact="9999 666 555", sort_order=4),
+        ]
+        for c in contacts:
+            db.add(c)
+
+        resources = [
+            Resource(
+                title="Tactical Resiliency & Tactical Breathing",
+                summary="Box breathing techniques used to regulate heart rate and nervous system arousal during acute operational stress.",
+                category="operational_stress",
+                body="Tactical breathing (4-4-4-4 box breathing): Inhale for 4 seconds, hold for 4 seconds, exhale for 4 seconds, hold for 4 seconds. Repeat for 4 cycles. This helps down-regulate the sympathetic fight-or-flight response.",
+            ),
+            Resource(
+                title="Shift Work Sleep Recovery Strategies",
+                summary="Actionable protocols for maintaining restorative sleep cycles during night rotations and irregular deployments.",
+                category="sleep_fatigue",
+                body="Keep your sleeping environment as dark and quiet as possible. Avoid blue screens and caffeine 4 hours before scheduled rest. If duty interrupts your sleep, use 20-30 minute tactical recovery naps.",
+            ),
+            Resource(
+                title="Family Connection Across Deployments",
+                summary="Strategies for maintaining emotional proximity and communication with children and spouses during remote deployments.",
+                category="family_separation",
+                body="Establish predictable communication windows when possible. Share small daily moments rather than waiting for major milestones. Reach out to unit welfare officers if personal matters require family assistance.",
+            ),
+        ]
+        for r in resources:
+            db.add(r)
+
         db.commit()
         print(f"Seed complete! Created:")
         print(f"  - {len(users)} users")
         print(f"  - {len(clinical_permissions)} clinical permissions")
         print(f"  - {len(personnel_list)} personnel")
+        print(f"  - {len(contacts)} emergency contacts")
+        print(f"  - {len(resources)} wellbeing resources")
         print(f"  - 80 alerts")
         print(f"  - Journals and assessments for selected personnel")
 

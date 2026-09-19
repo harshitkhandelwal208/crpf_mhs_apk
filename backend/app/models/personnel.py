@@ -64,7 +64,7 @@ class Personnel(Base):
     )
 
     # Relationships
-    user = relationship("User", foreign_keys=[user_id])
+    user = relationship("User", back_populates="personnel", foreign_keys=[user_id])
     alerts = relationship("Alert", back_populates="personnel", lazy="select")
     journals = relationship("Journal", back_populates="personnel", lazy="select")
     assessments = relationship("Assessment", back_populates="personnel", lazy="select")

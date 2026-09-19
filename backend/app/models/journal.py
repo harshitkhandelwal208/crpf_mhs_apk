@@ -19,8 +19,10 @@ class Journal(Base):
     personnel_id: Mapped[str] = mapped_column(
         String(36), ForeignKey("personnel.id"), nullable=False, index=True
     )
-    title: Mapped[str] = mapped_column(String(255), nullable=False)
+    title: Mapped[str] = mapped_column(String(255), nullable=False, default="Daily Journal")
     content: Mapped[str] = mapped_column(Text, nullable=False)
+    mood: Mapped[str] = mapped_column(String(50), nullable=False, default="okay")
+    status: Mapped[str] = mapped_column(String(50), nullable=False, default="SUBMITTED")
     sentiment_score: Mapped[float | None] = mapped_column(Float, nullable=True)
     sentiment_label: Mapped[str | None] = mapped_column(String(50), nullable=True)
     is_flagged: Mapped[bool] = mapped_column(default=False)

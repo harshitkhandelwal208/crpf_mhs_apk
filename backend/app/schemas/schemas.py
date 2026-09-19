@@ -15,7 +15,13 @@ from app.models.assessment import AssessmentType
 
 class LoginRequest(BaseModel):
     username: str = Field(..., description="User email address")
+    username: str | None = Field(None, description="User email or username")
+    email: str | None = Field(None, description="User email address")
     password: str = Field(..., min_length=1)
+
+    @property
+    def identifier(self) -> str:
+        return self.email or self.username or ""
 
 
 class TokenResponse(BaseModel):
@@ -34,8 +40,11 @@ class UserResponse(BaseModel):
     id: str
     email: str
     full_name: str
+    name: str | None = None
     role: UserRole
     is_active: bool
+    onboarding_complete: bool = True
+    mfa_enabled: bool = False
     permissions: list["PermissionResponse"] = []
     created_at: datetime
 
@@ -314,3 +323,114 @@ class MessageResponse(BaseModel):
 
 class ErrorResponse(BaseModel):
     detail: str | dict
+
+
+# ──────────────────────────── AI Chat ────────────────────────────
+
+class ChatRequest(BaseModel):
+    message: str = Field(..., min_length=1, max_length=4000)
+    conversation_id: str | None = None
+
+
+class ChatMessageResponse(BaseModel):
+    id: str
+    role: str
+    content: str
+    created_at: datetime | str | None = None
+
+
+class ChatResponse(BaseModel):
+    conversation_id: str
+    message: ChatMessageResponse
+    support_escalation: bool = False
+    morale_score: int | None = None
+    detected_mood: str | None = None
+    risk_flag: bool = False
+    safety_message: str | None = None
+
+
+class ConversationResponse(BaseModel):
+    id: str
+    title: str
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# ──────────────────────────── Journals ────────────────────────────
+
+class JournalCreateRequest(BaseModel):
+    content: str = Field(..., min_length=1)
+    mood: str = "okay"
+    status: str = "SUBMITTED"
+    title: str | None = None
+
+
+class JournalItem(BaseModel):
+    id: str
+    mood: str
+    content: str
+    status: str
+    created_at: str | datetime
+
+    class Config:
+        from_attributes = True
+
+
+class JournalMobileResponse(BaseModel):
+    journal: JournalItem
+
+
+# ──────────────────────────── Voice ────────────────────────────
+
+class VoiceTranscriptionResponse(BaseModel):
+    id: str
+    transcript: str
+    requires_review: bool = True
+
+
+# ──────────────────────────── Support ────────────────────────────
+
+class SupportRequestInput(BaseModel):
+    type: str = "routine"  # routine, counseling, urgent, welfare
+    message: str = Field(..., min_length=1)
+
+
+class SupportResponse(BaseModel):
+    id: str
+    status: str
+
+
+class SupportRequestItem(BaseModel):
+    id: str
+    type: str
+    message: str
+    status: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class EmergencyContactResponse(BaseModel):
+    id: str
+    label: str
+    description: str
+    contact: str
+
+    class Config:
+        from_attributes = True
+
+
+class ResourceResponse(BaseModel):
+    id: str
+    title: str
+    summary: str
+    category: str
+    body: str
+
+    class Config:
+        from_attributes = True
+

@@ -19,6 +19,7 @@ import com.example.myapplication.models.ChatResponse;
 import com.example.myapplication.models.JournalResponse;
 
 import java.util.Calendar;
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -39,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
         AuthManager authManager = new AuthManager(this);
         SentinelApiService apiService = ApiClient.getClient(authManager).create(SentinelApiService.class);
 
-        MainViewModel.Factory factory = new MainViewModel.Factory(authManager, apiService);
+        MainViewModel.Factory factory = new MainViewModel.Factory(authManager, apiService, this);
         viewModel = new ViewModelProvider(this, factory).get(MainViewModel.class);
 
         setupListeners();
@@ -158,6 +159,19 @@ public class MainActivity extends AppCompatActivity {
                 binding.companionPanel.getRoot().setVisibility(View.VISIBLE);
                 break;
             case "history":
+                List<JournalResponse> journals = viewModel.getSavedJournals();
+                TextView historyText = findViewById(R.id.history_text);
+                if (journals != null && !journals.isEmpty()) {
+                    StringBuilder sb = new StringBuilder();
+                    for (int i = 0; i < Math.min(6, journals.size()); i++) {
+                        JournalResponse j = journals.get(i);
+                        sb.append("• [").append(j.getCreatedAt() != null ? j.getCreatedAt() : "Offline Entry").append("] (Mood: ").append(j.getMood() != null ? j.getMood() : "okay").append(")\n")
+                          .append(j.getContent()).append("\n\n");
+                    }
+                    historyText.setText(sb.toString().trim());
+                } else {
+                    historyText.setText("No saved offline entries yet. Write a daily log or check-in to preserve your thoughts.");
+                }
                 binding.historyPanel.getRoot().setVisibility(View.VISIBLE);
                 break;
             case "profile":
@@ -192,14 +206,22 @@ public class MainActivity extends AppCompatActivity {
 
     private void sendCompanionMessage() {
         TextView responseText = findViewById(R.id.companion_response_text);
-        responseText.setText("Connecting to your private companion...");
-        viewModel.sendChat("I would like to talk through how I am feeling today.", null, new Callback<>() {
+        TextView companionInput = findViewById(R.id.companion_input);
+        String message = companionInput != null && companionInput.getText() != null && !companionInput.getText().toString().trim().isEmpty()
+                ? companionInput.getText().toString().trim()
+                : "I would like to talk through how I am feeling today.";
+
+        responseText.setText("Consulting CRPF Mental Health On-Device Neural Engine...");
+        viewModel.sendChat(message, null, new Callback<>() {
             @Override
             public void onResponse(@NonNull Call<ChatResponse> call, @NonNull Response<ChatResponse> response) {
                 if (response.isSuccessful() && response.body() != null && response.body().getMessage() != null) {
                     responseText.setText(response.body().getMessage().getContent());
+                    if (companionInput != null) {
+                        companionInput.setText("");
+                    }
                     if (response.body().isSupportEscalation()) {
-                        Toast.makeText(MainActivity.this, "Please use Get support for a confidential human conversation.", Toast.LENGTH_LONG).show();
+                        Toast.makeText(MainActivity.this, "CRPF Crisis Protocol: Please use Get Support for confidential assistance.", Toast.LENGTH_LONG).show();
                     }
                 } else {
                     responseText.setText("Your companion is unavailable right now. Please try again or contact support.");

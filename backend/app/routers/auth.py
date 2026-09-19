@@ -35,6 +35,7 @@ async def login(
 ):
     """Authenticate user and return JWT tokens."""
     user = authenticate_user(body.username, body.password, db)
+    user = authenticate_user(body.identifier, body.password, db)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
