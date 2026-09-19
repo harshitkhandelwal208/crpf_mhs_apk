@@ -141,59 +141,10 @@
   background: oklch(0.5 0.02 170 / 0.45);
 }
 
-/* Subtle hero grid */
-.hero-grid {
-  background-image:
-    linear-gradient(to right, oklch(0.42 0.05 178 / 0.06) 1px, transparent 1px),
-    linear-gradient(to bottom, oklch(0.42 0.05 178 / 0.06) 1px, transparent 1px);
-  background-size: 44px 44px;
-  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%);
-}
-
-.landing-serif {
-  font-family: Georgia, "Times New Roman", serif;
-  font-feature-settings: "kern";
-}
-
-.landing-data-font {
-  font-family: "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
-}
-
-.landing-type {
-  font-family: "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
-}
-
-.paper-grain {
-  background-image: radial-gradient(oklch(0.38 0.02 70 / 0.12) 0.7px, transparent 0.7px);
-  background-size: 5px 5px;
-}
-
-.serif {
-  font-family: var(--font-geist-sans), ui-serif, Georgia, serif;
-  font-feature-settings: "ss01";
-}
-
-.admin-record-page [data-slot="card"] {
-  border-color: #c9c1b3;
-  border-radius: 0;
-  background: #f7f3ea;
-  box-shadow: none;
-}
-
-.admin-record-page [data-slot="card-title"] {
-  font-family: Georgia, "Times New Roman", serif;
-  letter-spacing: 0.01em;
-}
-
-.admin-record-page [data-slot="table-head"] {
-  color: #53606a;
-  font-family: "Palatino Linotype", Palatino, Georgia, serif;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.admin-record-page [data-slot="table-row"] {
-  border-color: #d8d0c4;
+/* Custom Impeccable Easings */
+:root {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 /* Typing indicator */

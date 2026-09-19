@@ -61,14 +61,45 @@ export function AuditedBadge() {
 
 export function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
-    OPEN: "bg-rose-100 text-rose-700 ring-rose-200 dark:bg-rose-500/15 dark:text-rose-300 dark:ring-rose-400/30",
-    ACKNOWLEDGED: "bg-amber-100 text-amber-800 ring-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:ring-amber-400/30",
-    IN_REVIEW: "bg-sky-100 text-sky-800 ring-sky-200 dark:bg-sky-500/15 dark:text-sky-300 dark:ring-sky-400/30",
-    RESOLVED: "bg-emerald-100 text-emerald-700 ring-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:ring-emerald-400/30",
+    OPEN: "bg-rose-500/10 text-rose-600 dark:text-rose-400 ring-1 ring-rose-200 dark:ring-rose-800",
+    IN_REVIEW: "bg-sky-500/10 text-sky-600 dark:text-sky-400 ring-1 ring-sky-200 dark:ring-sky-800",
+    COMPLETED: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-200 dark:ring-emerald-800",
+    REVIEWED: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-200 dark:ring-emerald-800",
+    ACKNOWLEDGED: "bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-1 ring-amber-200 dark:ring-amber-800",
+    RESOLVED: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-200 dark:ring-emerald-800",
+    REJECTED: "bg-red-500/10 text-red-600 dark:text-red-400 ring-1 ring-red-200 dark:ring-red-800",
+    FLAGGED: "bg-red-500/10 text-red-600 dark:text-red-400 ring-1 ring-red-200 dark:ring-red-800",
+    CRITICAL: "bg-red-500/10 text-red-600 dark:text-red-400 ring-1 ring-red-200 dark:ring-red-800",
+    HIGH: "bg-orange-500/10 text-orange-600 dark:text-orange-400 ring-1 ring-orange-200 dark:ring-orange-800",
+    ELEVATED: "bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-1 ring-amber-200 dark:ring-amber-800",
+    MODERATE: "bg-slate-500/10 text-slate-600 dark:text-slate-400 ring-1 ring-slate-200 dark:ring-slate-800",
+    LOW: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-200 dark:ring-emerald-800",
+    NORMAL: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-200 dark:ring-emerald-800",
+    PENDING: "bg-slate-500/10 text-slate-600 dark:text-slate-400 ring-1 ring-slate-200 dark:ring-slate-800",
+    IN_PROGRESS: "bg-blue-500/10 text-blue-600 dark:text-blue-400 ring-1 ring-blue-200 dark:ring-blue-800",
+    ASSIGNED: "bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-1 ring-amber-200 dark:ring-amber-800",
+    CLOSED: "bg-slate-500/10 text-slate-600 dark:text-slate-400 ring-1 ring-slate-200 dark:ring-slate-800",
   };
   const cls = map[status] ?? "bg-muted text-muted-foreground ring-border";
   const labels: Record<string, string> = {
-    OPEN: "Open", ACKNOWLEDGED: "Acknowledged", IN_REVIEW: "In review", RESOLVED: "Resolved",
+    OPEN: "Open",
+    IN_REVIEW: "In review",
+    COMPLETED: "Completed",
+    REVIEWED: "Reviewed",
+    ACKNOWLEDGED: "Acknowledged",
+    RESOLVED: "Resolved",
+    REJECTED: "Rejected",
+    FLAGGED: "Flagged",
+    CRITICAL: "Critical",
+    HIGH: "High",
+    ELEVATED: "Elevated",
+    MODERATE: "Moderate",
+    LOW: "Low",
+    NORMAL: "Normal",
+    PENDING: "Pending",
+    IN_PROGRESS: "In progress",
+    ASSIGNED: "Assigned",
+    CLOSED: "Closed",
   };
   return (
     <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ${cls}`}>
@@ -79,9 +110,9 @@ export function StatusBadge({ status }: { status: string }) {
 
 export function SupportStatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
-    OPEN: "bg-rose-100 text-rose-700 ring-rose-200 dark:bg-rose-500/15 dark:text-rose-300 dark:ring-rose-400/30",
-    ASSIGNED: "bg-amber-100 text-amber-800 ring-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:ring-amber-400/30",
-    RESOLVED: "bg-emerald-100 text-emerald-700 ring-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:ring-emerald-400/30",
+    OPEN: "bg-rose-500/10 text-rose-600 dark:text-rose-400 ring-1 ring-rose-200 dark:ring-rose-800",
+    ASSIGNED: "bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-1 ring-amber-200 dark:ring-amber-800",
+    RESOLVED: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-200 dark:ring-emerald-800",
   };
   const cls = map[status] ?? "bg-muted text-muted-foreground ring-border";
   const labels: Record<string, string> = {

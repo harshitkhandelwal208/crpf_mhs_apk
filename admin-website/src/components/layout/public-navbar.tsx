@@ -255,10 +255,10 @@ export function PublicNavbar() {
                   aria-haspopup="dialog"
                   className="flex h-11 w-11 items-center justify-center rounded-lg border border-white/20 bg-transparent transition hover:border-white/40 hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
                 >
-                  <span className="flex flex-col gap-[5px]">
-                    <span className="block h-[3px] w-[22px] rounded-full bg-[#FF9933] transition-colors" />
-                    <span className="block h-[3px] w-[22px] rounded-full bg-white/80 transition-colors" />
-                    <span className="block h-[3px] w-[22px] rounded-full bg-[#138808] transition-colors" />
+                  <span className="flex w-10 h-10 flex-col items-center justify-center gap-[5px] rounded-full bg-white/10">
+                    <span className={cn("block h-[2.5px] w-7 rounded-full bg-[#FF9933] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]", open ? "translate-y-[7.5px] rotate-45" : "")} />
+                    <span className={cn("block h-[2.5px] w-7 rounded-full bg-[#FFFFFF] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]", open ? "scale-x-75 opacity-0" : "")} />
+                    <span className={cn("block h-[2.5px] w-7 rounded-full bg-[#138808] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]", open ? "-translate-y-[7.5px] -rotate-45" : "")} />
                   </span>
                 </button>
               </SheetTrigger>

@@ -38,10 +38,10 @@ const LEVELS: WellbeingLevel[] = ["NORMAL", "LOW", "MODERATE", "ELEVATED", "HIGH
 const PAGE_SIZE = 12;
 
 const STATUS_STYLE: Record<string, string> = {
-  ACTIVE: "bg-[#dfe7df] text-[#35604e] ring-[#aeb9ba]",
-  LOCKED: "bg-[#eadfdd] text-[#7a3f3b] ring-[#c9aaa5]",
-  SUSPENDED: "bg-[#eee6d2] text-[#765b28] ring-[#d5c39a]",
-  PENDING_VERIFICATION: "bg-[#dfe5e8] text-[#3f5f70] ring-[#b4c2c8]",
+  ACTIVE: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800",
+  LOCKED: "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800",
+  SUSPENDED: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800",
+  PENDING_VERIFICATION: "bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800",
 };
 
 export default function AdminPersonnelView() {
@@ -110,7 +110,7 @@ export default function AdminPersonnelView() {
       <Header language={language} />
 
       {/* Filters */}
-      <Card className="mb-4 rounded-none border-[#c9c1b3] bg-[#f7f3ea] shadow-none">
+      <Card className="mb-4 rounded-xl border border-border/60 bg-card shadow-sm">
         <CardContent className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center">
           <div className="relative flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -118,7 +118,7 @@ export default function AdminPersonnelView() {
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder={translate("Search by name, service number, or email…", language)}
-              className="rounded-none border-[#c9c1b3] bg-[#fbf8f1] pl-9 shadow-none"
+              className="pl-9"
               aria-label={translate("Search personnel", language)}
             />
           </div>
@@ -165,7 +165,7 @@ export default function AdminPersonnelView() {
       ) : (
         <>
           {/* Desktop table */}
-          <Card className="hidden rounded-none border-[#c9c1b3] bg-[#f7f3ea] shadow-none md:block">
+          <Card className="hidden rounded-xl border border-border/60 bg-card shadow-sm md:block">
             <CardContent className="p-0">
               <Table>
                 <TableHeader>
@@ -181,7 +181,7 @@ export default function AdminPersonnelView() {
                 </TableHeader>
                 <TableBody>
                   {data.rows.map((p) => (
-                    <TableRow key={p.id} className="border-[#d8d0c4] hover:bg-[#eee8dc]">
+                    <TableRow key={p.id} className="transition-colors hover:bg-muted/40">
                       <TableCell>
                         <div className="flex items-center gap-3">
                           <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
@@ -224,7 +224,7 @@ export default function AdminPersonnelView() {
           {/* Mobile cards */}
           <div className="grid grid-cols-1 gap-3 md:hidden">
             {data.rows.map((p) => (
-              <Card key={p.id} className="rounded-none border-[#c9c1b3] bg-[#f7f3ea] shadow-none">
+              <Card key={p.id} className="rounded-xl border border-border/60 bg-card shadow-sm">
                 <CardContent className="py-4">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-3 min-w-0">
@@ -290,7 +290,7 @@ function FilterSelect({
 }) {
   return (
     <Select value={value} onValueChange={onChange}>
-      <SelectTrigger aria-label={ariaLabel} className="w-[160px] rounded-none border-[#c9c1b3] bg-[#fbf8f1] shadow-none">
+      <SelectTrigger aria-label={ariaLabel} className="w-[160px]">
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>

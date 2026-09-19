@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ShieldCheck,
   Lock,
@@ -136,14 +136,14 @@ export default function LandingView() {
               </p>
 
               <div className="mt-9 flex flex-col items-start gap-3 sm:flex-row">
-                <Button size="lg" onClick={() => navigate("register")} className="h-12 w-full min-w-44 justify-center rounded-none border-l-2 border-[#d8b36a] bg-[#f6f2e9] px-6 text-base font-semibold text-[#172638] hover:bg-[#e8e3d8] sm:w-auto">
+                <Button size="lg" onClick={() => navigate("register")} className="h-12 w-full min-w-44 justify-center rounded-xl border-l-2 border-primary bg-background px-6 text-base font-semibold text-foreground hover:bg-muted sm:w-auto">
                   {isHindi ? "शुरू करें" : "Get Started"} <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
                 <Button
                   size="lg"
                   variant="outline"
                   onClick={() => navigate("how-it-works")}
-                  className="h-12 w-full min-w-44 justify-center rounded-none border border-[#172638] bg-[#172638] px-6 text-base font-semibold text-[#f6f2e9] hover:bg-[#263c52] sm:w-auto"
+                  className="h-12 w-full min-w-44 justify-center rounded-xl border border-primary bg-primary px-6 text-base font-semibold text-primary-foreground hover:bg-primary/90 sm:w-auto"
                 >
                   {isHindi ? "यह कैसे काम करता है" : "How It Works"}
                 </Button>
@@ -158,74 +158,74 @@ export default function LandingView() {
               className="relative mx-auto w-full max-w-xl"
             >
               <div className="absolute -inset-3 rounded-2xl border border-white/20" aria-hidden="true" />
-              <div className="landing-data-font relative overflow-hidden bg-[#e8e3d8]/95 p-3 shadow-[7px_7px_0_rgba(23,38,56,0.22)] sm:p-5">
-                <div className="flex items-center justify-between border-b border-[#aeb9ba] bg-[#d9d4c9] px-3 py-3">
+              <div className="landing-data-font relative overflow-hidden bg-card/95 backdrop-blur-md p-3 shadow-[7px_7px_0_rgba(23,38,56,0.22)] sm:p-5">
+                <div className="flex items-center justify-between border-b border-border/60 bg-muted/50 px-3 py-3">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-[#91a0a5] bg-[#eee9df] text-[#172638]">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 text-foreground">
                       <HeartPulse className="h-4 w-4" />
                     </div>
                     <div>
-                      <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#53606a]">{isHindi ? "आज" : "Today"}</p>
-                        <p className="text-sm font-semibold text-[#172638]">{isHindi ? "वेलबीइंग पल्स" : "Wellbeing pulse"}</p>
+                      <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">{isHindi ? "आज" : "Today"}</p>
+                        <p className="text-sm font-semibold text-foreground">{isHindi ? "वेलबीइंग पल्स" : "Wellbeing pulse"}</p>
                     </div>
                   </div>
                   <div>
-                    <span className="border-y-2 border-[#35604e] bg-[#d9e0dc] px-3 py-1 font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-[#35604e]">
+                    <span className="border-y-2 border-emerald-500/20 bg-emerald-500/10 px-3 py-1 font-mono text-[11px] font-bold uppercase tracking-[0.2em] text-emerald-500">
                       {isHindi ? "स्थिर" : "Stable"}
                     </span>
                   </div>
                 </div>
 
-                <div className="mt-4 border border-[#7e8b91] bg-[#f6f2e9] p-4">
+                <div className="mt-4 border border-border bg-background p-4">
                   <div className="flex items-end justify-between gap-4">
                     <div>
-                      <p className="font-mono text-xs uppercase tracking-[0.18em] text-[#53606a]">{isHindi ? "मूड ट्रेंड" : "Mood trend"}</p>
-                      <p className="mt-2 font-mono text-5xl font-semibold tracking-[-0.08em] text-[#172638]">{selectedMood}%</p>
+                      <p className="font-mono text-xs uppercase tracking-[0.18em] text-muted-foreground">{isHindi ? "मूड ट्रेंड" : "Mood trend"}</p>
+                      <p className="mt-2 font-mono text-5xl font-semibold tracking-[-0.08em] text-foreground">{selectedMood}%</p>
                     </div>
-                      <div className="rounded-full border border-[#91a99b] bg-[#d9e0dc] px-2.5 py-1 font-mono text-xs font-medium text-[#35604e]">
+                      <div className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-1 font-mono text-xs font-medium text-emerald-500">
                       {isHindi ? `इस सप्ताह +${weeklyChange}%` : `+${weeklyChange}% this week`}
                     </div>
                   </div>
 
-                  <div className="relative mt-5 h-36 overflow-hidden border border-[#c1c8c7] bg-[#fbf8f1]" aria-label={isHindi ? "साप्ताहिक मूड ट्रेंड" : "Weekly mood trend"} role="img">
+                  <div className="relative mt-5 h-36 overflow-hidden border border-border bg-card" aria-label={isHindi ? "साप्ताहिक मूड ट्रेंड" : "Weekly mood trend"} role="img">
                     <div className="absolute inset-0 bg-[linear-gradient(to_bottom,transparent_24%,#c1c8c755_25%,transparent_26%,transparent_49%,#c1c8c755_50%,transparent_51%,transparent_74%,#c1c8c755_75%,transparent_76%)]" />
                     <svg viewBox="0 0 700 180" className="relative h-full w-full" preserveAspectRatio="none" aria-label={isHindi ? "साप्ताहिक मूड ट्रेंड" : "Weekly mood trend"} role="img">
-                      <polyline points={moodPolyline} fill="none" stroke="#536b83" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
-                      <polyline points={moodArea} fill="#536b83" fillOpacity="0.12" stroke="none" />
+                      <polyline points={moodPolyline} fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+                      <polyline points={moodArea} fill="currentColor" fillOpacity="0.12" stroke="none" />
                       {moodPoints.map((point, index) => (
                         <circle
                           key={`${point.x}-${point.y}`}
                           cx={point.x}
                           cy={point.y}
                           r="6"
-                          fill="#f6f2e9"
-                          stroke="#536b83"
+                          fill="white"
+                          stroke="currentColor"
                           strokeWidth="4"
                           aria-label={`${['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][index]}: ${moodReadings[index]}%`}
                         />
                       ))}
                     </svg>
                   </div>
-                  <div className="mt-2 flex justify-between px-1 font-mono text-[9px] uppercase tracking-[0.12em] text-[#53606a]">
+                  <div className="mt-2 flex justify-between px-1 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
                     {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => <span key={day}>{day}</span>)}
                   </div>
-                  <div className="mt-4 grid grid-cols-3 border-t border-[#c1c8c7] pt-3 text-[10px] uppercase tracking-[0.12em] text-[#53606a]">
-                    <span><strong className="block font-mono text-sm text-[#172638]">07</strong>{isHindi ? "अवलोकन" : "Observations"}</span>
-                    <span><strong className="block font-mono text-sm text-[#172638]">{selectedMood}%</strong>{isHindi ? "चयनित" : "Selected"}</span>
-                    <span><strong className="block font-mono text-sm text-[#172638]">{weeklyMin}–{weeklyMax}</strong>{isHindi ? "साप्ताहिक सीमा" : "Weekly range"}</span>
+                  <div className="mt-4 grid grid-cols-3 border-t border-border pt-3 text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                    <span><strong className="block font-mono text-sm text-foreground">07</strong>{isHindi ? "अवलोकन" : "Observations"}</span>
+                    <span><strong className="block font-mono text-sm text-foreground">{selectedMood}%</strong>{isHindi ? "चयनित" : "Selected"}</span>
+                    <span><strong className="block font-mono text-sm text-foreground">{weeklyMin}–{weeklyMax}</strong>{isHindi ? "साप्ताहिक सीमा" : "Weekly range"}</span>
                   </div>
                 </div>
 
                 <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-lg border border-[#aeb9ba] bg-[#d9d4c9] p-3">
-                    <p className="font-mono text-xs uppercase tracking-[0.18em] text-[#53606a]">{isHindi ? "चेक-इन" : "Check-in"}</p>
-                    <p className="mt-2 text-lg font-semibold text-[#172638]">{isHindi ? "3/4 पूर्ण" : "3/4 complete"}</p>
-                    <p className="mt-1 text-xs text-[#53606a]">{isHindi ? "इस सप्ताह आपकी लय स्थिर है।" : "Your rhythm is steady this week."}</p>
+                  <div className="rounded-lg border border-border/60 bg-muted/50 p-3">
+                    <p className="font-mono text-xs uppercase tracking-[0.18em] text-muted-foreground">{isHindi ? "चेक-इन" : "Check-in"}</p>
+                    <p className="mt-2 text-lg font-semibold text-foreground">{isHindi ? "3/4 पूर्ण" : "3/4 complete"}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{isHindi ? "इस सप्ताह आपकी लय स्थिर है।" : "Your rhythm is steady this week."}</p>
                   </div>
-                  <div className="rounded-lg border border-[#aeb9ba] bg-[#d9d4c9] p-3">
-                    <p className="font-mono text-xs uppercase tracking-[0.18em] text-[#53606a]">{isHindi ? "दैनिक लॉग" : "Daily log"}</p>
-                    <p className="mt-2 text-lg font-semibold text-[#172638]">{isHindi ? "1 शेष" : "1 remaining"}</p>
-                    <p className="mt-1 text-xs text-[#53606a]">{isHindi ? "आज का प्रतिबिंब अभी बाकी है।" : "Today's reflection is still remaining."}</p>
+                  <div className="rounded-lg border border-border/60 bg-muted/50 p-3">
+                    <p className="font-mono text-xs uppercase tracking-[0.18em] text-muted-foreground">{isHindi ? "दैनिक लॉग" : "Daily log"}</p>
+                    <p className="mt-2 text-lg font-semibold text-foreground">{isHindi ? "1 शेष" : "1 remaining"}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{isHindi ? "आज का प्रतिबिंब अभी बाकी है।" : "Today's reflection is still remaining."}</p>
                   </div>
                 </div>
               </div>
@@ -240,18 +240,18 @@ export default function LandingView() {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={revealViewport}
         transition={{ duration: 0.8, ease: revealEase }}
-        className="mb-8 border-y-8 border-background border-t-[#172638] bg-[#1d256f] text-[#f6f2e9]"
+        className="mb-8 border-y-8 border-background border-t-border bg-[#1d256f] text-primary-foreground"
       >
         <div className="mx-auto max-w-7xl px-0 py-8 sm:px-4 lg:px-8 lg:py-16">
           <div className="grid gap-10 md:grid-cols-[0.8fr_1.2fr] md:gap-12 lg:gap-20">
             <div className="px-4 sm:px-0">
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#d8b36a]">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">
               {isHindi ? "आपको क्या मिलता है" : "What you get"}
             </p>
-            <h2 className="landing-serif mt-3 text-4xl font-medium leading-tight tracking-[-0.04em] text-[#f6f2e9] sm:text-5xl">
+            <h2 className="landing-serif mt-3 text-4xl font-medium leading-tight tracking-[-0.04em] text-primary-foreground sm:text-5xl">
               {isHindi ? "एक प्लेटफॉर्म, अपना ख्याल रखने के छह तरीके" : "One platform, six ways to look after yourself"}
             </h2>
-            <p className="mt-5 max-w-md text-sm leading-relaxed text-[#e1e5e5]/75 sm:text-base">
+            <p className="mt-5 max-w-md text-sm leading-relaxed text-white/70 sm:text-base">
               {isHindi ? "गोपनीय, निजी और सेवा जीवन की वास्तविकताओं के लिए बनाया गया, कोई सामान्य वेलनेस ऐप नहीं।" : "Discreet, private, and built for the realities of service life — not a consumer wellness app."}
             </p>
             <motion.div
@@ -259,7 +259,7 @@ export default function LandingView() {
               whileInView="visible"
               viewport={revealViewport}
               variants={{ visible: { transition: { staggerChildren: 0.1 } } }}
-              className="calm-scroll mt-10 max-h-[380px] overflow-y-auto border-t border-[#d9e0dc]/35 pr-2"
+              className="calm-scroll mt-10 max-h-[380px] overflow-y-auto border-t border-white/15 pr-2"
             >
               {features.map((f, i) => (
                 <motion.button
@@ -270,10 +270,10 @@ export default function LandingView() {
                     hidden: { opacity: 0, x: -18 },
                     visible: { opacity: 1, x: 0, transition: { duration: 0.4, ease: "easeOut" } },
                   }}
-                  className={`flex w-full items-center gap-4 border-b border-[#d9e0dc]/35 py-4 text-left transition-colors ${selectedFeature === i ? "border-l-2 border-[#d8b36a] bg-[#172638]/65 px-3 text-[#f6f2e9]" : "text-[#e1e5e5]/80 hover:bg-[#405a71] hover:text-[#f6f2e9]"}`}
+                  className={`flex w-full items-center gap-4 border-b border-white/15 py-4 text-left transition-colors ${selectedFeature === i ? "border-l-2 border-primary bg-primary/65 px-3 text-primary-foreground" : "text-white/80 hover:bg-white/5 hover:text-primary-foreground"}`}
                 >
                   <span className="flex-1 text-base font-semibold">{f.title[language]}</span>
-                  <ChevronRight className={`h-4 w-4 transition-transform ${selectedFeature === i ? "translate-x-1 text-[#d8b36a]" : ""}`} />
+                  <ChevronRight className={`h-4 w-4 transition-transform ${selectedFeature === i ? "translate-x-1 text-primary" : ""}`} />
                 </motion.button>
               ))}
             </motion.div>
@@ -284,9 +284,9 @@ export default function LandingView() {
               initial={{ opacity: 0, x: 12 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.25 }}
-              className="relative min-h-[390px] overflow-hidden border border-[#d9e0dc] bg-[#e8e3d8] p-7 text-[#172638] sm:p-10"
+              className="relative min-h-[390px] overflow-hidden border border-border bg-card p-7 text-foreground sm:p-10"
             >
-              <div className="absolute right-0 top-0 h-28 w-28 border-b border-l border-border/70 bg-[#e8e3d8]" aria-hidden="true" />
+              <div className="absolute right-0 top-0 h-28 w-28 border-b border-l border-border/70 bg-card" aria-hidden="true" />
               <div className="relative flex h-full flex-col justify-between">
                 <div>
                   <div className="flex items-center justify-between">
@@ -297,12 +297,22 @@ export default function LandingView() {
                       </span>
                     ); })()}
                   </div>
-                  <h3 className="landing-serif mt-20 max-w-lg text-4xl font-medium leading-tight tracking-[-0.04em] text-foreground sm:text-5xl">
-                    {features[selectedFeature].title[language]}
-                  </h3>
-                  <p className="mt-5 max-w-lg text-base leading-relaxed text-muted-foreground sm:text-lg">
-                    {features[selectedFeature].description[language]}
-                  </p>
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={selectedFeature}
+                      initial={{ opacity: 0, filter: 'blur(8px)', y: 15 }}
+                      animate={{ opacity: 1, filter: 'blur(0px)', y: 0 }}
+                      exit={{ opacity: 0, filter: 'blur(4px)', y: -10 }}
+                      transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+                    >
+                      <h3 className="landing-serif mt-20 max-w-lg text-4xl font-medium leading-tight tracking-[-0.04em] text-foreground sm:text-5xl">
+                        {features[selectedFeature].title[language]}
+                      </h3>
+                      <p className="mt-5 max-w-lg text-base leading-relaxed text-muted-foreground sm:text-lg">
+                        {features[selectedFeature].description[language]}
+                      </p>
+                    </motion.div>
+                  </AnimatePresence>
                 </div>
                 <div className="mt-12 flex items-end justify-between border-t border-border/70 pt-4 font-mono text-[10px] uppercase tracking-[0.14em] text-muted-foreground">
                   <span>{isHindi ? "निजी सेवा" : "Private service"}</span>
@@ -311,7 +321,7 @@ export default function LandingView() {
                 <Button
                   type="button"
                   onClick={() => navigate(features[selectedFeature].view)}
-                  className="mt-5 w-full justify-between rounded-none bg-[#172638] text-[#f6f2e9] hover:bg-[#263c52]"
+                  className="mt-5 w-full justify-between rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                   {features[selectedFeature].action[language]}
                   <ArrowRight className="h-4 w-4" />
@@ -330,7 +340,7 @@ export default function LandingView() {
         transition={{ duration: 0.8, ease: revealEase }}
         className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20"
       >
-        <div className="overflow-hidden border-y border-red-200 border-l-4 border-l-red-700 bg-red-50/45 dark:border-red-900/40 dark:border-l-red-500 dark:bg-red-950/15">
+        <div className="overflow-hidden rounded-xl ring-1 ring-red-200 bg-red-50 dark:ring-red-900/40 dark:bg-red-950/15">
           <div className="grid gap-6 p-6 sm:p-8 lg:grid-cols-[1.4fr_1fr] lg:items-center lg:p-10">
             <div>
               <div className="flex items-center gap-2">
@@ -347,7 +357,7 @@ export default function LandingView() {
               <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                 <Button
                   onClick={() => navigate("support")}
-                  className="rounded-none bg-red-700 text-white hover:bg-red-800"
+                  className="rounded-xl bg-red-700 text-white hover:bg-red-800"
                 >
                   <LifeBuoy className="mr-1.5 h-4 w-4" />
                   Contact Support
@@ -355,7 +365,7 @@ export default function LandingView() {
                 <Button
                   variant="outline"
                   onClick={() => navigate("support", { focus: "emergency" })}
-                  className="rounded-none border-red-300 bg-transparent text-red-900 hover:bg-red-100 dark:border-red-800 dark:text-red-200 dark:hover:bg-red-950/40"
+                  className="rounded-xl border-red-300 bg-transparent text-red-900 hover:bg-red-100 dark:border-red-800 dark:text-red-200 dark:hover:bg-red-950/40"
                 >
                   <Phone className="mr-1.5 h-4 w-4" />
                   Emergency Assistance
@@ -468,7 +478,7 @@ export default function LandingView() {
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-9">
           <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
             <div className="max-w-2xl">
-              <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.2em] text-[#d8b36a]">
+              <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.2em] text-primary">
                 {isHindi ? "अगला कदम" : "The next step"}
               </p>
               <h2 className="landing-serif text-3xl font-medium leading-tight tracking-[-0.03em] sm:text-4xl">

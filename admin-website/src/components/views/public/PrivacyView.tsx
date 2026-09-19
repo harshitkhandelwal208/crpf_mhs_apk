@@ -36,31 +36,31 @@ const sections = [
           personnel. To do that, we collect the following categories of
           information:
         </p>
-        <ul className="ml-5 list-disc space-y-1.5">
-          <li>
+        <div className="space-y-4 mt-4">
+          <div className="pl-4 border-l-2 border-primary/20">
             <strong>Identity &amp; service profile.</strong> Name, email,
             service number, unit, and rank — enough to route support to the
             right person.
-          </li>
-          <li>
+          </div>
+          <div className="pl-4 border-l-2 border-primary/20">
             <strong>Wellbeing data.</strong> Daily check-in responses,
             assessment results, mood entries, and journal content (text and
             voice).
-          </li>
-          <li>
+          </div>
+          <div className="pl-4 border-l-2 border-primary/20">
             <strong>AI conversations.</strong> Messages exchanged with the
             AI-assisted companion. These are treated as sensitive content.
-          </li>
-          <li>
+          </div>
+          <div className="pl-4 border-l-2 border-primary/20">
             <strong>Operational &amp; audit data.</strong> Login events,
             consent decisions, alerts, support requests, and access to
             sensitive records — all written to an audit log.
-          </li>
-          <li>
+          </div>
+          <div className="pl-4 border-l-2 border-primary/20">
             <strong>Support requests.</strong> Any message you submit through
-            the support request form, along with its status.
-          </li>
-        </ul>
+            the contact form, and its resolution history.
+          </div>
+        </div>
       </div>
     ),
   },
@@ -72,13 +72,13 @@ const sections = [
         <p>
           Each category has a clear purpose:
         </p>
-        <ul className="ml-5 list-disc space-y-1.5">
-          <li><strong>Identity</strong> — to authenticate you and route support to the correct chain of care.</li>
-          <li><strong>Wellbeing data</strong> — to compute operational wellbeing indicators, surface patterns over time, and inform low-intensity AI-assisted support.</li>
-          <li><strong>AI conversations</strong> — to provide the companion experience and detect signals that suggest a human check-in might help.</li>
-          <li><strong>Audit &amp; operational data</strong> — to enforce accountability, support investigations, and detect misuse.</li>
-          <li><strong>Support requests</strong> — to action and track your requests for help.</li>
-        </ul>
+        <div className="space-y-4 mt-4">
+          <div className="pl-4 border-l-2 border-primary/20"><strong>Identity</strong> — to authenticate you and route support to the correct chain of care.</div>
+          <div className="pl-4 border-l-2 border-primary/20"><strong>Wellbeing data</strong> — to compute operational wellbeing indicators, surface patterns over time, and inform low-intensity AI-assisted support.</div>
+          <div className="pl-4 border-l-2 border-primary/20"><strong>AI conversations</strong> — to provide the companion experience and detect signals that suggest a human check-in might help.</div>
+          <div className="pl-4 border-l-2 border-primary/20"><strong>Audit &amp; operational data</strong> — to enforce accountability, support investigations, and detect misuse.</div>
+          <div className="pl-4 border-l-2 border-primary/20"><strong>Support requests</strong> — to action and track your requests for help.</div>
+        </div>
         <p>
           We do not sell personal data. We do not use personal data for advertising.
         </p>
@@ -116,12 +116,12 @@ const sections = [
           Access is governed by role-based access control (RBAC) on a strict
           least-privilege basis:
         </p>
-        <ul className="ml-5 list-disc space-y-1.5">
-          <li><strong>You</strong> can always see your own data.</li>
-          <li><strong>Supervisors</strong> see operational indicators and trends — not raw journals or AI conversations.</li>
-          <li><strong>Mental health professionals</strong> may access your raw journal entries and AI conversations, but only when granted elevated permission, and every access is audit-logged.</li>
-          <li><strong>Administrators</strong> manage accounts and system configuration; they do not have routine access to clinical content.</li>
-        </ul>
+        <div className="space-y-4 mt-4">
+          <div className="pl-4 border-l-2 border-primary/20"><strong>You</strong> can always see your own data.</div>
+          <div className="pl-4 border-l-2 border-primary/20"><strong>Supervisors</strong> see operational indicators and trends — not raw journals or AI conversations.</div>
+          <div className="pl-4 border-l-2 border-primary/20"><strong>Mental health professionals</strong> may access your raw journal entries and AI conversations, but only when granted elevated permission, and every access is audit-logged.</div>
+          <div className="pl-4 border-l-2 border-primary/20"><strong>Administrators</strong> manage accounts and system configuration; they do not have routine access to clinical content.</div>
+        </div>
         <p>
           Every access to sensitive data is written to an immutable audit log,
           including who accessed what and when.
@@ -138,12 +138,12 @@ const sections = [
           Retention periods are set by your deployment organization and
           reflect operational and regulatory requirements. In general:
         </p>
-        <ul className="ml-5 list-disc space-y-1.5">
-          <li>Account data is retained while your account is active and for a defined period after deactivation.</li>
-          <li>Wellbeing and journal content is retained according to your organization's data retention policy.</li>
-          <li>Audit logs are retained for an extended period to support accountability and investigations.</li>
-          <li>Support requests are retained until resolved and archived per policy.</li>
-        </ul>
+        <div className="space-y-4 mt-4">
+          <div className="pl-4 border-l-2 border-primary/20">Account data is retained while your account is active and for a defined period after deactivation.</div>
+          <div className="pl-4 border-l-2 border-primary/20">Wellbeing and journal content is retained according to your organization's data retention policy.</div>
+          <div className="pl-4 border-l-2 border-primary/20">Audit logs are retained for an extended period to support accountability and investigations.</div>
+          <div className="pl-4 border-l-2 border-primary/20">Support requests are retained until resolved and archived per policy.</div>
+        </div>
         <p>
           You can request deletion of your data in line with your organization's
           data subject rights process. Some records (such as audit logs) may be
@@ -161,13 +161,13 @@ const sections = [
           Wellbeing content is inherently sensitive. CRPF MHS protects it
           with multiple layers:
         </p>
-        <ul className="ml-5 list-disc space-y-1.5">
-          <li><strong>Encryption at rest</strong> — sensitive fields are encrypted in the database, not just the database itself.</li>
-          <li><strong>Field-level protection</strong> — journal content and AI conversation messages receive additional field-level protection.</li>
-          <li><strong>Transport encryption</strong> — all traffic between your device and the platform is encrypted in transit.</li>
-          <li><strong>Role-based access</strong> — sensitive content requires elevated permission that is granted on a need-to-know basis.</li>
-          <li><strong>Audit logging</strong> — every access is recorded and reviewable.</li>
-        </ul>
+        <div className="space-y-4 mt-4">
+          <div className="pl-4 border-l-2 border-primary/20"><strong>Encryption at rest</strong> — sensitive fields are encrypted in the database, not just the database itself.</div>
+          <div className="pl-4 border-l-2 border-primary/20"><strong>Field-level protection</strong> — journal content and AI conversation messages receive additional field-level protection.</div>
+          <div className="pl-4 border-l-2 border-primary/20"><strong>Transport encryption</strong> — all traffic between your device and the platform is encrypted in transit.</div>
+          <div className="pl-4 border-l-2 border-primary/20"><strong>Role-based access</strong> — sensitive content requires elevated permission that is granted on a need-to-know basis.</div>
+          <div className="pl-4 border-l-2 border-primary/20"><strong>Audit logging</strong> — every access is recorded and reviewable.</div>
+        </div>
       </div>
     ),
   },
@@ -199,13 +199,13 @@ const sections = [
         <p>
           Depending on your jurisdiction, you may have the right to:
         </p>
-        <ul className="ml-5 list-disc space-y-1.5">
-          <li>Access the personal data we hold about you.</li>
-          <li>Request correction of inaccurate data.</li>
-          <li>Request deletion of personal data, subject to legal retention obligations.</li>
-          <li>Withdraw consent for specific processing purposes.</li>
-          <li>Receive a copy of your data in a portable format.</li>
-        </ul>
+        <div className="space-y-4 mt-4">
+          <div className="pl-4 border-l-2 border-primary/20">Access the personal data we hold about you.</div>
+          <div className="pl-4 border-l-2 border-primary/20">Request correction of inaccurate data.</div>
+          <div className="pl-4 border-l-2 border-primary/20">Request deletion of personal data, subject to legal retention obligations.</div>
+          <div className="pl-4 border-l-2 border-primary/20">Withdraw consent for specific processing purposes.</div>
+          <div className="pl-4 border-l-2 border-primary/20">Receive a copy of your data in a portable format.</div>
+        </div>
         <p>
           To exercise these rights, contact your unit administrator or the
           data protection contact configured by your deployment organization.

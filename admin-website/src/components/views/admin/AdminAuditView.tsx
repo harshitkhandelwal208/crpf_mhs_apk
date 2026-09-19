@@ -37,19 +37,19 @@ const PAGE_SIZE = 40;
 const COMMON_ACTIONS = Array.from(new Set(Object.values(AUDIT_ACTIONS))).sort();
 
 const ACTION_TINT: Record<string, string> = {
-  login: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300",
-  logout: "bg-muted text-muted-foreground",
-  failed_login: "bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300",
-  password_reset: "bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300",
-  password_reset_request: "bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300",
-  sensitive_access: "bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300",
-  assessment_access: "bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300",
-  journal_access: "bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300",
-  conversation_access: "bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300",
-  alert_updated: "bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300",
-  alert_created: "bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300",
-  ai_safety_triggered: "bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300",
-  risk_event_created: "bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300",
+  login: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800",
+  logout: "bg-muted text-muted-foreground border border-border",
+  failed_login: "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800",
+  password_reset: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800",
+  password_reset_request: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800",
+  sensitive_access: "bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800",
+  assessment_access: "bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800",
+  journal_access: "bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800",
+  conversation_access: "bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800",
+  alert_updated: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800",
+  alert_created: "bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800",
+  ai_safety_triggered: "bg-red-500/10 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800",
+  risk_event_created: "bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800",
 };
 
 function actionTint(action: string): string {
@@ -240,7 +240,7 @@ function Header() {
       <p className="mt-1 text-sm text-muted-foreground">
         System audit log — sensitive actions are recorded here. Read-only.
       </p>
-      <div className="mt-3 inline-flex w-fit items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs text-amber-800 dark:border-amber-400/30 dark:bg-amber-500/10 dark:text-amber-300">
+      <div className="mt-3 inline-flex w-fit items-center gap-2 rounded-md border border-border bg-muted/30 px-3 py-1.5 text-xs text-muted-foreground">
         <LockKeyhole className="h-3.5 w-3.5" />
         <span>Every sensitive access (journals, assessments, conversations) is permanently recorded.</span>
       </div>

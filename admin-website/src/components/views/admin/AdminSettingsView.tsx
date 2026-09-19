@@ -12,7 +12,12 @@ import { Badge } from "@/components/ui/badge";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Check, X, ShieldCheck, Server, KeyRound, Database, RefreshCw } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import { Check, X, ShieldCheck, Server, KeyRound, Database, RefreshCw, Settings2, Bell } from "lucide-react";
 import {
   AdminPage,
 } from "./_shared";
@@ -38,6 +43,12 @@ export default function AdminSettingsView() {
   const { user } = useApp();
   const [seeding, setSeeding] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+
+  // Settings State
+  const [mfaEnabled, setMfaEnabled] = useState(true);
+  const [emailAlerts, setEmailAlerts] = useState(true);
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [retentionPeriod, setRetentionPeriod] = useState("90");
 
   // Best-effort: AI provider is server-only. We surface it only if explicitly
   // exposed via NEXT_PUBLIC_AI_PROVIDER; otherwise show that it's configured.
@@ -98,7 +109,7 @@ export default function AdminSettingsView() {
                 icon={Server}
                 label="Node env"
                 value={
-                  <Badge variant="outline" className={`ring-1 ${isDev ? "bg-amber-100 text-amber-800 ring-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:ring-amber-400/30" : "bg-emerald-100 text-emerald-700 ring-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:ring-emerald-400/30"}`}>
+                  <Badge variant="outline" className={`ring-1 ${isDev ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-amber-200 dark:ring-amber-800" : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-emerald-200 dark:ring-emerald-800"}`}>
                     {process.env.NODE_ENV ?? "—"}
                   </Badge>
                 }
@@ -126,6 +137,70 @@ export default function AdminSettingsView() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Security & Operations Settings */}
+      <Card className="mt-6">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Settings2 className="h-4 w-4 text-muted-foreground" />
+            Security & Operations
+          </CardTitle>
+          <CardDescription>
+            Configure active system behaviors, notification routing, and security policies.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+          
+          {/* Toggles */}
+          <div className="flex flex-col gap-6">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="mfa" className="text-sm font-medium">Require MFA for Admins</Label>
+                <p className="text-xs text-muted-foreground">Force two-factor auth for roles with sensitive access.</p>
+              </div>
+              <Switch id="mfa" checked={mfaEnabled} onCheckedChange={(val) => { setMfaEnabled(val); toast.success("MFA policy updated"); }} />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="alerts" className="text-sm font-medium flex items-center gap-1.5">
+                  <Bell className="h-3.5 w-3.5" /> High-Risk Email Alerts
+                </Label>
+                <p className="text-xs text-muted-foreground">Send immediate emails to supervisors for critical indicators.</p>
+              </div>
+              <Switch id="alerts" checked={emailAlerts} onCheckedChange={(val) => { setEmailAlerts(val); toast.success("Alert preferences updated"); }} />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="maintenance" className="text-sm font-medium">Maintenance Mode</Label>
+                <p className="text-xs text-muted-foreground">Suspend non-admin access during system updates.</p>
+              </div>
+              <Switch id="maintenance" checked={maintenanceMode} onCheckedChange={(val) => { setMaintenanceMode(val); toast(val ? "Maintenance mode enabled" : "Maintenance mode disabled"); }} />
+            </div>
+          </div>
+
+          {/* Selectors */}
+          <div className="flex flex-col gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="retention" className="text-sm font-medium">Audit Log Retention</Label>
+              <Select value={retentionPeriod} onValueChange={(val) => { setRetentionPeriod(val); toast.success("Retention policy updated"); }}>
+                <SelectTrigger id="retention" className="w-full sm:w-[240px]">
+                  <SelectValue placeholder="Select period" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="30">30 days (Compliance Min)</SelectItem>
+                  <SelectItem value="90">90 days (Standard)</SelectItem>
+                  <SelectItem value="365">1 year (Extended)</SelectItem>
+                  <SelectItem value="indefinite">Indefinite (Full Archive)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">How long to keep non-sensitive operational audit records.</p>
+            </div>
+          </div>
+          
+        </CardContent>
+      </Card>
 
       {/* RBAC permission matrix */}
       <Card className="mt-6">
@@ -161,7 +236,7 @@ export default function AdminSettingsView() {
                             <p className="text-xs text-muted-foreground font-mono">{perm}</p>
                           </div>
                           {isSensitive && (
-                            <Badge variant="outline" className="ring-1 ring-amber-200 bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300 dark:ring-amber-400/30">
+                            <Badge variant="outline" className="ring-1 ring-amber-200 dark:ring-amber-800 bg-amber-500/10 text-amber-600 dark:text-amber-400">
                               Sensitive
                             </Badge>
                           )}

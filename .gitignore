@@ -48,3 +48,5 @@ Thumbs.db
 *.db-journal
 *.db-wal
 *.db-shm
+
+/external_tools/

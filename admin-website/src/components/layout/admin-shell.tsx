@@ -14,6 +14,7 @@ import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import type { View } from "@/lib/store";
 import { translate } from "@/lib/i18n";
+import { motion } from "framer-motion";
 import { BackButton } from "@/components/shared/back-button";
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
@@ -24,16 +25,16 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const { user, view, navigate, mobileNavOpen, setMobileNavOpen, language, setLanguage } = useApp();
 
   const Sidebar = (
-    <div className="flex h-full flex-col bg-sidebar">
-      <div className="flex h-16 items-center border-b border-sidebar-border px-5">
-        <button onClick={() => navigate("admin")}>
+    <div className="flex h-full flex-col bg-[#0B192C] text-white">
+      <div className="flex h-16 items-center border-b border-white/10 px-5">
+        <button onClick={() => navigate("admin")} className="transition-transform hover:scale-105 active:scale-95 duration-200">
             <span className="inline-flex items-center gap-2.5">
             <Logo size={28} />
-            <span className="font-semibold tracking-tight text-sidebar-foreground">CRPF MHS <span className="text-primary">Admin</span></span>
+            <span className="font-semibold tracking-tight text-white">CRPF MHS <span className="text-blue-400">Admin</span></span>
           </span>
         </button>
       </div>
-      <nav className="flex-1 space-y-1 overflow-y-auto calm-scroll px-3 py-4">
+      <nav className="flex-1 space-y-1.5 overflow-y-auto calm-scroll px-3 py-6 relative">
         {ADMIN_NAV.map((item) => {
           const Icon = ICONS[item.icon ?? ""] ?? LayoutDashboard;
           const activeView = view === item.key || (view === "admin-person" && item.key === "admin-personnel");
@@ -42,29 +43,45 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               key={item.key}
               onClick={() => navigate(item.key as View)}
               className={cn(
-                "group flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                activeView ? "bg-primary text-primary-foreground shadow-sm" : "text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                "group relative flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-300",
+                activeView ? "text-white" : "text-white/60 hover:text-white hover:bg-white/5"
               )}
             >
-              <Icon className="h-4 w-4 shrink-0" />
-              {translate(item.label, language)}
+              {activeView && (
+                <motion.div
+                  layoutId="sidebar-active-indicator"
+                  className="absolute inset-0 rounded-lg bg-white/10"
+                  initial={false}
+                  transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                />
+              )}
+              {activeView && (
+                <motion.div
+                  layoutId="sidebar-active-pill"
+                  className="absolute left-0 top-1/2 -mt-2.5 h-5 w-1 rounded-r-full bg-[#FF9933] shadow-[0_0_8px_rgba(255,153,51,0.6)]"
+                  initial={false}
+                  transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                />
+              )}
+              <Icon className={cn("h-4 w-4 shrink-0 relative z-10 transition-transform duration-300", activeView ? "scale-110 text-white" : "group-hover:scale-110")} />
+              <span className="relative z-10">{translate(item.label, language)}</span>
             </button>
           );
         })}
       </nav>
-      <div className="border-t border-sidebar-border p-3">
-        <button onClick={() => navigate("dashboard")} className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left hover:bg-sidebar-accent">
-          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/15 text-primary font-semibold">
+      <div className="border-t border-white/10 p-3">
+        <button onClick={() => navigate("dashboard")} className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left hover:bg-white/5">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-700 text-white font-semibold shadow-inner">
             {(user?.name?.[0] ?? "A").toUpperCase()}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-sidebar-foreground">{user?.name}</p>
-            <p className="truncate text-xs text-muted-foreground">{user ? ROLE_LABELS[user.role] : ""}</p>
+            <p className="truncate text-sm font-medium text-white">{user?.name}</p>
+            <p className="truncate text-xs text-white/60">{user ? ROLE_LABELS[user.role] : ""}</p>
           </div>
-          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+          <ChevronRight className="h-4 w-4 text-white/50" />
         </button>
         <Button
-          variant="ghost" size="sm" className="mt-1 w-full justify-start text-muted-foreground"
+          variant="ghost" size="sm" className="mt-1 w-full justify-start text-white/60 hover:text-white hover:bg-white/5"
           onClick={async () => { await api.post("/api/auth/logout"); useApp.getState().setUser(null); useApp.getState().navigate("home"); }}
         >
           <LogOut className="mr-2 h-4 w-4" /> {translate("Sign out", language)}
@@ -75,7 +92,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-background">
-      <aside className="hidden w-64 shrink-0 border-r border-border lg:block">
+      <aside className="hidden w-64 shrink-0 lg:block">
         {Sidebar}
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">

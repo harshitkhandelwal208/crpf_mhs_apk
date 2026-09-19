@@ -25,21 +25,21 @@ export function PublicFooter() {
           </div>
           <div>
             <h4 className="text-xs font-semibold uppercase tracking-wider text-white/80">{isHindi ? "प्लेटफॉर्म" : "Platform"}</h4>
-            <ul className="mt-3 space-y-2 text-sm">
-              <li><button className="text-white/70 hover:text-white" onClick={() => navigate("about")}>{isHindi ? "हमारे बारे में" : "About"}</button></li>
-              <li><button className="text-white/70 hover:text-white" onClick={() => navigate("how-it-works")}>{isHindi ? "यह कैसे काम करता है" : "How It Works"}</button></li>
-              <li><button className="text-white/70 hover:text-white" onClick={() => navigate("resources")}>{isHindi ? "संसाधन" : "Resources"}</button></li>
-              <li><button className="text-white/70 hover:text-white" onClick={() => navigate("support")}>{isHindi ? "सहायता" : "Support"}</button></li>
-              <li><button className="text-white/70 hover:text-white" onClick={() => navigate("contact")}>{isHindi ? "संपर्क" : "Contact"}</button></li>
-            </ul>
+            <div className="mt-3 space-y-2 text-sm">
+              <div><button className="text-white/70 hover:text-white" onClick={() => navigate("about")}>{isHindi ? "हमारे बारे में" : "About"}</button></div>
+              <div><button className="text-white/70 hover:text-white" onClick={() => navigate("how-it-works")}>{isHindi ? "यह कैसे काम करता है" : "How It Works"}</button></div>
+              <div><button className="text-white/70 hover:text-white" onClick={() => navigate("resources")}>{isHindi ? "संसाधन" : "Resources"}</button></div>
+              <div><button className="text-white/70 hover:text-white" onClick={() => navigate("support")}>{isHindi ? "सहायता" : "Support"}</button></div>
+              <div><button className="text-white/70 hover:text-white" onClick={() => navigate("contact")}>{isHindi ? "संपर्क" : "Contact"}</button></div>
+            </div>
           </div>
           <div>
             <h4 className="text-xs font-semibold uppercase tracking-wider text-white/80">{isHindi ? "खाता" : "Account"}</h4>
-            <ul className="mt-3 space-y-2 text-sm">
-              <li><button className="text-white/70 hover:text-white" onClick={() => navigate("login")}>{isHindi ? "लॉगिन" : "Login"}</button></li>
-              <li><button className="text-white/70 hover:text-white" onClick={() => navigate("register")}>{isHindi ? "खाता बनाएं" : "Create account"}</button></li>
-              <li><button className="text-white/70 hover:text-white" onClick={() => navigate("privacy")}>{isHindi ? "गोपनीयता" : "Privacy"}</button></li>
-            </ul>
+            <div className="mt-3 space-y-2 text-sm">
+              <div><button className="text-white/70 hover:text-white" onClick={() => navigate("login")}>{isHindi ? "लॉगिन" : "Login"}</button></div>
+              <div><button className="text-white/70 hover:text-white" onClick={() => navigate("register")}>{isHindi ? "खाता बनाएं" : "Create account"}</button></div>
+              <div><button className="text-white/70 hover:text-white" onClick={() => navigate("privacy")}>{isHindi ? "गोपनीयता" : "Privacy"}</button></div>
+            </div>
           </div>
         </div>
         <div className="mt-8 flex flex-col items-start justify-between gap-3 border-t border-white/15 pt-6 text-xs text-white/60 sm:flex-row sm:items-center">

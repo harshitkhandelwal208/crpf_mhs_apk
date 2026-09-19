@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { motion } from "framer-motion";
 import { useApp } from "@/lib/store";
 import { api, ApiRequestError } from "@/lib/api";
 import {
@@ -46,12 +47,12 @@ const STAT_CARDS: {
   key: keyof Cards; label: string; icon: typeof Users;
   tint: string; ring: string;
 }[] = [
-  { key: "totalPersonnel", label: "Total Personnel", icon: Users, tint: "bg-teal-50 text-teal-700 dark:bg-teal-500/10 dark:text-teal-300", ring: "ring-teal-200 dark:ring-teal-400/20" },
-  { key: "activeUsers", label: "Active Users (7d)", icon: Activity, tint: "bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300", ring: "ring-emerald-200 dark:ring-emerald-400/20" },
-  { key: "assessmentsCompleted", label: "Assessments Completed", icon: ClipboardCheck, tint: "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300", ring: "ring-amber-200 dark:ring-amber-400/20" },
-  { key: "elevatedIndicators", label: "Elevated Indicators", icon: TriangleAlert, tint: "bg-orange-50 text-orange-700 dark:bg-orange-500/10 dark:text-orange-300", ring: "ring-orange-200 dark:ring-orange-400/20" },
+  { key: "totalPersonnel", label: "Total Personnel", icon: Users, tint: "bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300", ring: "ring-blue-200 dark:ring-blue-400/20" },
+  { key: "activeUsers", label: "Active Users (7d)", icon: Activity, tint: "bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300", ring: "ring-blue-200 dark:ring-blue-400/20" },
+  { key: "assessmentsCompleted", label: "Assessments Completed", icon: ClipboardCheck, tint: "bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300", ring: "ring-blue-200 dark:ring-blue-400/20" },
+  { key: "elevatedIndicators", label: "Elevated Indicators", icon: TriangleAlert, tint: "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300", ring: "ring-amber-200 dark:ring-amber-400/20" },
   { key: "highIndicators", label: "High Indicators", icon: OctagonAlert, tint: "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-300", ring: "ring-red-200 dark:ring-red-400/20" },
-  { key: "criticalAlerts", label: "Critical Alerts", icon: ShieldAlert, tint: "bg-rose-50 text-rose-800 dark:bg-rose-500/10 dark:text-rose-300", ring: "ring-rose-200 dark:ring-rose-400/20" },
+  { key: "criticalAlerts", label: "Critical Alerts", icon: ShieldAlert, tint: "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-300", ring: "ring-red-200 dark:ring-red-400/20" },
 ];
 
 export default function AdminDashboardView() {
@@ -123,25 +124,32 @@ export default function AdminDashboardView() {
 
       {/* Stat cards */}
       <section aria-label="Key metrics" className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-3 xl:grid-cols-6">
-        {STAT_CARDS.map((s) => {
+        {STAT_CARDS.map((s, idx) => {
           const Icon = s.icon;
           const val = dashboard.cards[s.key];
           return (
-            <Card key={s.key} className="overflow-hidden">
-              <CardContent className="py-4">
+            <motion.div
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: idx * 0.05, ease: [0.23, 1, 0.32, 1] }}
+              key={s.key}
+              className="group relative h-full"
+            >
+              <div className="absolute -inset-0.5 rounded-xl bg-gradient-to-r from-[#FF9933]/0 via-blue-400/0 to-[#138808]/0 opacity-0 blur transition duration-500 group-hover:from-[#FF9933]/20 group-hover:via-blue-400/20 group-hover:to-[#138808]/20 group-hover:opacity-100" />
+              <div className="relative flex h-full flex-col justify-between rounded-xl border border-border/60 bg-card p-5 shadow-sm transition-all duration-500 group-hover:-translate-y-1 group-hover:shadow-md">
                 <div className="flex items-center justify-between">
-                  <div className={`inline-flex h-9 w-9 items-center justify-center rounded-lg ring-1 ${s.tint} ${s.ring}`}>
-                    <Icon className="h-4 w-4" />
-                  </div>
+                  <Icon className="h-4 w-4 text-muted-foreground transition-colors duration-500 group-hover:text-primary" />
                 </div>
-                <p className="mt-3 text-2xl font-semibold tracking-tight tabular-nums text-foreground">
-                  {val.toLocaleString()}
-                </p>
-                <p className="mt-0.5 text-xs font-medium text-muted-foreground">
-                  {s.label}
-                </p>
-              </CardContent>
-            </Card>
+                <div className="mt-4">
+                  <p className="text-3xl font-medium tracking-tight tabular-nums text-foreground transition-transform duration-500 group-hover:scale-[1.02] origin-left">
+                    {val.toLocaleString()}
+                  </p>
+                  <p className="mt-1 text-xs font-medium text-muted-foreground">
+                    {s.label}
+                  </p>
+                </div>
+              </div>
+            </motion.div>
           );
         })}
       </section>
@@ -201,9 +209,9 @@ export default function AdminDashboardView() {
                 No personnel currently flagged. Calm waters.
               </div>
             ) : (
-              <ul className="divide-y divide-border">
+              <div className="flex flex-col space-y-1">
                 {attn.map((p) => (
-                  <li key={p.id}>
+                  <div key={p.id} className="border-b border-border last:border-0 pb-1 last:pb-0">
                     <button
                       onClick={() => navigate("admin-person", { id: p.id })}
                       className="flex w-full items-center justify-between gap-2 py-2.5 text-left transition-colors hover:bg-muted/40 -mx-2 px-2 rounded-md"
@@ -214,7 +222,8 @@ export default function AdminDashboardView() {
                         </p>
                         <p className="truncate text-xs text-muted-foreground">
                           {p.unit ?? "Unassigned"}
-                          {p.serviceNumber ? ` · ${p.serviceNumber}` : ""}
+                          {p.serviceNumber ? <span className="mx-1.5 opacity-50">|</span> : ""}
+                          {p.serviceNumber ? p.serviceNumber : ""}
                         </p>
                       </div>
                       <div className="flex items-center gap-2">
@@ -222,9 +231,9 @@ export default function AdminDashboardView() {
                         <ChevronRight className="h-4 w-4 text-muted-foreground" />
                       </div>
                     </button>
-                  </li>
+                  </div>
                 ))}
-              </ul>
+              </div>
             )}
           </CardContent>
         </Card>

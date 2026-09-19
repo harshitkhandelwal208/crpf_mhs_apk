@@ -4,7 +4,7 @@ import Image from "next/image";
 import { useApp } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
-const LOGO_SRC = "/crpfmentalhealthsupport.png";
+const LOGO_SRC = "/crpf-logo.png";
 
 export function Logo({ className, size = 52 }: { className?: string; size?: number }) {
   return (

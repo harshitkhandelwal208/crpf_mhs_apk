@@ -148,7 +148,7 @@ export default function AdminPersonView() {
 
   return (
     <AdminPage>
-      <div className="admin-record-page">
+      <div>
       <BackButton />
 
       {/* Header */}
@@ -549,10 +549,10 @@ export default function AdminPersonView() {
 
 function StatusPill({ status }: { status: UserStatus }) {
   const map: Record<string, string> = {
-    ACTIVE: "bg-emerald-100 text-emerald-700 ring-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:ring-emerald-400/30",
-    LOCKED: "bg-rose-100 text-rose-700 ring-rose-200 dark:bg-rose-500/15 dark:text-rose-300 dark:ring-rose-400/30",
-    SUSPENDED: "bg-amber-100 text-amber-800 ring-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:ring-amber-400/30",
-    PENDING_VERIFICATION: "bg-sky-100 text-sky-700 ring-sky-200 dark:bg-sky-500/15 dark:text-sky-300 dark:ring-sky-400/30",
+    ACTIVE: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 ring-1 ring-emerald-200 dark:ring-emerald-800",
+    LOCKED: "bg-red-500/10 text-red-600 dark:text-red-400 ring-1 ring-red-200 dark:ring-red-800",
+    SUSPENDED: "bg-amber-500/10 text-amber-600 dark:text-amber-400 ring-1 ring-amber-200 dark:ring-amber-800",
+    PENDING_VERIFICATION: "bg-slate-500/10 text-slate-600 dark:text-slate-400 ring-1 ring-slate-200 dark:ring-slate-800",
   };
   return (
     <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ${map[status] ?? "bg-muted text-muted-foreground ring-border"}`}>
