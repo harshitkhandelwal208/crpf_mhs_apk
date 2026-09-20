@@ -108,7 +108,7 @@ account.
 The root `render.yaml` defines a Singapore-region FastAPI web service. It:
 
 - installs only backend requirements without retaining pip's package cache;
-- runs migrations before each deployment;
+- runs idempotent migrations before each API process starts;
 - creates the first super administrator only on the initial deployment;
 - binds Uvicorn to Render's assigned public port with one memory-conscious
   worker;

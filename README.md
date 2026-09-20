@@ -77,8 +77,8 @@ health endpoint at `http://127.0.0.1:8000/health`.
 
 Commit and push the deployment files before opening the **Deploy to Render**
 button above. Render reads the root `render.yaml`, deploys the service in
-Singapore, runs Alembic migrations before each release, and checks both API and
-database readiness at `/health/ready`.
+Singapore, runs idempotent Alembic migrations before the API starts, and checks
+both API and database readiness at `/health/ready`.
 
 Render prompts for these values during the initial Blueprint deployment:
 

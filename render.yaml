@@ -7,11 +7,9 @@ services:
     branch: main
     autoDeployTrigger: commit
     buildCommand: pip install --no-cache-dir -r backend/requirements.txt
-    preDeployCommand: cd backend && python manage.py migrate
     initialDeployHook: cd backend && python manage.py bootstrap-admin
-    startCommand: cd backend && python -m uvicorn main:app --host 0.0.0.0 --port $PORT --workers 1 --proxy-headers --forwarded-allow-ips=*
+    startCommand: cd backend && python manage.py migrate && exec python -m uvicorn main:app --host 0.0.0.0 --port $PORT --workers 1 --proxy-headers --forwarded-allow-ips=*
     healthCheckPath: /health/ready
-    maxShutdownDelaySeconds: 30
     buildFilter:
       paths:
         - backend/**
