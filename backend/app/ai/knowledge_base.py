@@ -9,10 +9,13 @@ import re
 import json
 import math
 from pathlib import Path
-from typing import List, Dict, Any, Optional, Tuple
-import numpy as np
+try:
+    import numpy as np
+except ImportError:
+    np = None
 
 from app.ai.hk_format import load_hk, HKModelPackage
+
 
 
 class ClinicalKnowledgeBase:

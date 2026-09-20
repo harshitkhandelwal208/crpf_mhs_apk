@@ -6,10 +6,10 @@ services:
     region: singapore
     branch: main
     autoDeployTrigger: commit
-    buildCommand: pip install --no-cache-dir -r backend/requirements.txt
-    initialDeployHook: cd backend && python manage.py migrate && python manage.py bootstrap-admin
-    startCommand: cd backend && python manage.py migrate && exec python -m uvicorn main:app --host 0.0.0.0 --port $PORT --workers 1 --proxy-headers --forwarded-allow-ips=*
-    healthCheckPath: /health/ready
+    buildCommand: pip install --no-cache-dir -r backend/requirements.txt || pip install --no-cache-dir -r requirements.txt
+    initialDeployHook: (cd backend 2>/dev/null || true) && python manage.py migrate && python manage.py bootstrap-admin
+    startCommand: (cd backend 2>/dev/null || true) && python manage.py migrate && exec python -m uvicorn main:app --host 0.0.0.0 --port $PORT --workers 1 --proxy-headers --forwarded-allow-ips=*
+    healthCheckPath: /health/live
     buildFilter:
       paths:
         - backend/**

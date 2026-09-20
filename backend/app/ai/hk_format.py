@@ -15,7 +15,10 @@ import struct
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple, Union
 
-import numpy as np
+try:
+    import numpy as np
+except ImportError:
+    np = None
 
 # Official HKNT 1.0.4 Constants
 MAGIC = b"HKNT"
@@ -37,26 +40,31 @@ STORAGE_INT64 = 0x07
 STORAGE_UINT8 = 0x08
 STORAGE_BOOL = 0x09
 
-NUMPY_TO_HK_DTYPE = {
-    np.dtype("float32"): STORAGE_F32,
-    np.dtype("float16"): STORAGE_F16,
-    np.dtype("int8"): STORAGE_INT8,
-    np.dtype("int32"): STORAGE_INT32,
-    np.dtype("int64"): STORAGE_INT64,
-    np.dtype("uint8"): STORAGE_UINT8,
-    np.dtype("bool"): STORAGE_BOOL,
-}
+if np is not None:
+    NUMPY_TO_HK_DTYPE = {
+        np.dtype("float32"): STORAGE_F32,
+        np.dtype("float16"): STORAGE_F16,
+        np.dtype("int8"): STORAGE_INT8,
+        np.dtype("int32"): STORAGE_INT32,
+        np.dtype("int64"): STORAGE_INT64,
+        np.dtype("uint8"): STORAGE_UINT8,
+        np.dtype("bool"): STORAGE_BOOL,
+    }
 
-HK_TO_NUMPY_DTYPE = {
-    STORAGE_F32: np.dtype("float32"),
-    STORAGE_F16: np.dtype("float16"),
-    STORAGE_BF16: np.dtype("uint16"),
-    STORAGE_INT8: np.dtype("int8"),
-    STORAGE_INT32: np.dtype("int32"),
-    STORAGE_INT64: np.dtype("int64"),
-    STORAGE_UINT8: np.dtype("uint8"),
-    STORAGE_BOOL: np.dtype("bool"),
-}
+    HK_TO_NUMPY_DTYPE = {
+        STORAGE_F32: np.dtype("float32"),
+        STORAGE_F16: np.dtype("float16"),
+        STORAGE_BF16: np.dtype("uint16"),
+        STORAGE_INT8: np.dtype("int8"),
+        STORAGE_INT32: np.dtype("int32"),
+        STORAGE_INT64: np.dtype("int64"),
+        STORAGE_UINT8: np.dtype("uint8"),
+        STORAGE_BOOL: np.dtype("bool"),
+    }
+else:
+    NUMPY_TO_HK_DTYPE = {}
+    HK_TO_NUMPY_DTYPE = {}
+
 
 
 def _align(size: int, alignment: int = ALIGNMENT) -> int:

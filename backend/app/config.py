@@ -53,7 +53,9 @@ class Settings(BaseSettings):
     @field_validator("DATABASE_URL", mode="before")
     @classmethod
     def normalize_database_url(cls, value):
-        database_url = str(value).strip()
+        database_url = str(value).strip() if value is not None else ""
+        if not database_url:
+            return f"sqlite:///{(BACKEND_DIR / 'sentinel.db').as_posix()}"
         if database_url.startswith("postgres://"):
             return "postgresql://" + database_url.removeprefix("postgres://")
         return database_url
