@@ -29,10 +29,23 @@
             android:textColor="@color/muted_ink"
             android:textSize="14sp" />
 
+        <TextView
+            android:id="@+id/journal_sync_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:background="@color/teal_surface"
+            android:accessibilityLiveRegion="polite"
+            android:padding="10dp"
+            android:text="@string/sync_status_synced"
+            android:textColor="@color/success"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="14dp"
             app:cardBackgroundColor="@color/white"
             app:cardCornerRadius="16dp"
             app:strokeColor="@color/line"

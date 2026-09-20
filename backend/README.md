@@ -72,3 +72,49 @@ python test_backend_integration.py
 - `POST /api/support/request`: Submit routine or urgent support requests.
 - `GET /api/emergency-contacts`: 24/7 force welfare helplines & unit medical contacts.
 - `GET /api/resources`: Educational wellbeing resources.
+
+---
+
+## Database migrations
+
+Use Alembic through the deployment manager rather than creating production
+schemas during API startup:
+
+```bash
+cd backend
+python manage.py migrate
+python manage.py check
+```
+
+`migrate` upgrades fresh databases and can safely baseline older installations
+that used SQLAlchemy `create_all`. It refuses to complete if Alembic detects
+remaining schema drift.
+
+Create the first production administrator from environment variables:
+
+```bash
+BOOTSTRAP_ADMIN_EMAIL=administrator@example.gov.in \
+BOOTSTRAP_ADMIN_NAME="CRPF Platform Administrator" \
+BOOTSTRAP_ADMIN_PASSWORD="replace-with-a-strong-unique-password" \
+python manage.py bootstrap-admin
+```
+
+The command is idempotent and never resets or elevates an existing account.
+Delete the bootstrap password from the hosting environment after verifying the
+account.
+
+## Render deployment
+
+The root `render.yaml` defines a Singapore-region FastAPI web service. It:
+
+- installs only backend requirements without retaining pip's package cache;
+- runs migrations before each deployment;
+- creates the first super administrator only on the initial deployment;
+- binds Uvicorn to Render's assigned public port with one memory-conscious
+  worker;
+- uses `/health/ready` to verify PostgreSQL connectivity; and
+- prompts for the external Neon `DATABASE_URL` instead of storing it in Git.
+
+Production startup rejects SQLite and weak/default JWT secrets. Android and the
+desktop BFF do not require browser CORS; optional browser origins must be
+explicitly listed with `CORS_ORIGINS`.

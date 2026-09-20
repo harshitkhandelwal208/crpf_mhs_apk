@@ -1,0 +1,44 @@
+appId: in.gov.crpf.mhs.admin
+productName: CRPF MHS Admin
+electronDist: node_modules/electron/dist
+asar: true
+compression: maximum
+npmRebuild: false
+nodeGypRebuild: false
+removePackageScripts: true
+electronLanguages:
+  - en-US
+directories:
+  output: dist-desktop
+  buildResources: build-assets
+files:
+  - electron/main.cjs
+  - package.json
+  - "!node_modules/**/*"
+extraResources:
+  - from: .next/standalone
+    to: next-standalone
+    filter:
+      - "**/*"
+      - "!**/.env"
+      - "!**/.env.*"
+      - "!**/*.map"
+      - "!**/.next/cache/**/*"
+      - "!**/node_modules/.cache/**/*"
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  requestedExecutionLevel: asInvoker
+  forceCodeSigning: false
+  artifactName: CRPF-MHS-Admin-${version}-${arch}-Setup.${ext}
+nsis:
+  oneClick: false
+  perMachine: false
+  allowElevation: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: CRPF MHS Admin
+  deleteAppDataOnUninstall: false

@@ -10,6 +10,7 @@ from app.models.refresh_token import RefreshToken
 from app.models.ai import AIConversation, AIMessage
 from app.models.support import SupportRequest, SupportStatus, EmergencyContact, Resource
 from app.models.voice import VoiceEntry
+from app.models.sync_receipt import SyncReceipt
 
 __all__ = [
     "User",
@@ -34,4 +35,5 @@ __all__ = [
     "EmergencyContact",
     "Resource",
     "VoiceEntry",
+    "SyncReceipt",
 ]

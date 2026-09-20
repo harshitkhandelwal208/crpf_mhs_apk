@@ -18,9 +18,19 @@ interface Opts extends RequestInit {
   expectBlob?: boolean;
 }
 
+function routedPath(path: string): string {
+  const pathname = path.split("?", 1)[0];
+  const useCloudBff = pathname.startsWith("/api/admin/") || [
+    "/api/auth/login",
+    "/api/auth/me",
+    "/api/auth/logout",
+  ].includes(pathname);
+  return useCloudBff ? `/api/cloud${path.slice(4)}` : path;
+}
+
 async function request<T>(path: string, opts: Opts = {}): Promise<T> {
   const { json, headers, expectBlob, ...rest } = opts;
-  const res = await fetch(path, {
+  const res = await fetch(routedPath(path), {
     credentials: "include",
     headers: {
       ...(json !== undefined ? { "Content-Type": "application/json" } : {}),

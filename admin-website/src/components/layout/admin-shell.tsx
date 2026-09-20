@@ -2,7 +2,7 @@
 
 import {
   LayoutDashboard, Users, ShieldAlert, BellRing, BarChart3,
-  ScrollText, Settings, LogOut, ChevronRight,
+  ScrollText, Settings, LogOut, ChevronRight, Cloud, MonitorDot,
   Languages,
 } from "lucide-react";
 import { Logo } from "@/components/shared/logo";
@@ -14,11 +14,10 @@ import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import type { View } from "@/lib/store";
 import { translate } from "@/lib/i18n";
-import { motion } from "framer-motion";
 import { BackButton } from "@/components/shared/back-button";
 
 const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
-  LayoutDashboard, Users, ShieldAlert, BellRing, BarChart3, ScrollText, Settings,
+  LayoutDashboard, Users, ShieldAlert, BellRing, BarChart3, MonitorDot, ScrollText, Settings,
 };
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
@@ -27,7 +26,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const Sidebar = (
     <div className="flex h-full flex-col bg-[#0B192C] text-white">
       <div className="flex h-16 items-center border-b border-white/10 px-5">
-        <button onClick={() => navigate("admin")} className="transition-transform hover:scale-105 active:scale-95 duration-200">
+        <button type="button" onClick={() => navigate("admin")} className="transition-transform hover:scale-105 active:scale-95 duration-200" aria-label="Open admin dashboard">
             <span className="inline-flex items-center gap-2.5">
             <Logo size={28} />
             <span className="font-semibold tracking-tight text-white">CRPF MHS <span className="text-blue-400">Admin</span></span>
@@ -47,21 +46,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 activeView ? "text-white" : "text-white/60 hover:text-white hover:bg-white/5"
               )}
             >
+              {activeView && <div className="absolute inset-0 rounded-lg bg-white/10" />}
               {activeView && (
-                <motion.div
-                  layoutId="sidebar-active-indicator"
-                  className="absolute inset-0 rounded-lg bg-white/10"
-                  initial={false}
-                  transition={{ type: "spring", stiffness: 350, damping: 30 }}
-                />
-              )}
-              {activeView && (
-                <motion.div
-                  layoutId="sidebar-active-pill"
-                  className="absolute left-0 top-1/2 -mt-2.5 h-5 w-1 rounded-r-full bg-[#FF9933] shadow-[0_0_8px_rgba(255,153,51,0.6)]"
-                  initial={false}
-                  transition={{ type: "spring", stiffness: 350, damping: 30 }}
-                />
+                <div className="absolute left-0 top-1/2 -mt-2.5 h-5 w-1 rounded-r-full bg-[#FF9933] shadow-[0_0_8px_rgba(255,153,51,0.6)]" />
               )}
               <Icon className={cn("h-4 w-4 shrink-0 relative z-10 transition-transform duration-300", activeView ? "scale-110 text-white" : "group-hover:scale-110")} />
               <span className="relative z-10">{translate(item.label, language)}</span>
@@ -100,7 +87,15 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-3">
             <BackButton />
           </div>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5">
+            <div
+              aria-label="Shared cloud data source"
+              title="Admin and mobile use the shared cloud API"
+              className="hidden items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-2.5 py-1.5 text-[11px] font-medium text-white/85 sm:flex"
+            >
+              <Cloud className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>Shared cloud</span>
+            </div>
             <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
               <SheetTrigger asChild>
                 <button

@@ -14,14 +14,14 @@ export type View =
   | "assessment" | "history" | "profile" | "settings" | "help"
   // admin
   | "admin" | "admin-personnel" | "admin-person" | "admin-risk"
-  | "admin-alerts" | "admin-analytics" | "admin-audit" | "admin-settings"
-  | "privacy";
+  | "admin-alerts" | "admin-analytics" | "admin-monitoring" | "admin-audit"
+  | "admin-settings" | "privacy";
 
 const VIEW_PATHS: Record<View, string> = {
   home: "/", about: "/about", "how-it-works": "/how-it-works", resources: "/resources", support: "/support", contact: "/contact",
   login: "/login", register: "/register", "forgot-password": "/forgot-password", "reset-password": "/reset-password", "verify-email": "/verify-email", privacy: "/privacy",
   dashboard: "/dashboard", "daily-log": "/daily-log", "voice-journal": "/voice-journal", "ai-companion": "/ai-companion", assessment: "/assessment", history: "/history", profile: "/profile", settings: "/settings", help: "/help",
-  admin: "/admin", "admin-personnel": "/admin/personnel", "admin-person": "/admin/personnel", "admin-risk": "/admin/risk-monitoring", "admin-alerts": "/admin/alerts", "admin-analytics": "/admin/analytics", "admin-audit": "/admin/audit-logs", "admin-settings": "/admin/settings",
+  admin: "/admin", "admin-personnel": "/admin/personnel", "admin-person": "/admin/personnel", "admin-risk": "/admin/risk-monitoring", "admin-alerts": "/admin/alerts", "admin-analytics": "/admin/analytics", "admin-monitoring": "/admin/demo-monitoring", "admin-audit": "/admin/audit-logs", "admin-settings": "/admin/settings",
 };
 
 export function pathForView(view: View, params: Record<string, string> = {}): string {

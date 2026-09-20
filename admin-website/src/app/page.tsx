@@ -40,6 +40,7 @@ const AdminPersonView = lazy(() => import("@/components/views/admin/AdminPersonV
 const AdminRiskView = lazy(() => import("@/components/views/admin/AdminRiskView"));
 const AdminAlertsView = lazy(() => import("@/components/views/admin/AdminAlertsView"));
 const AdminAnalyticsView = lazy(() => import("@/components/views/admin/AdminAnalyticsView"));
+const AdminMonitoringView = lazy(() => import("@/components/views/admin/AdminMonitoringView"));
 const AdminAuditView = lazy(() => import("@/components/views/admin/AdminAuditView"));
 const AdminSettingsView = lazy(() => import("@/components/views/admin/AdminSettingsView"));
 
@@ -47,7 +48,7 @@ const PUBLIC_VIEWS: View[] = ["login"];
 const APP_VIEWS: View[] = [];
 const ADMIN_VIEWS: View[] = [
   "admin", "admin-personnel", "admin-person", "admin-risk",
-  "admin-alerts", "admin-analytics", "admin-audit", "admin-settings",
+  "admin-alerts", "admin-analytics", "admin-monitoring", "admin-audit", "admin-settings",
 ];
 const ADMIN_ROLES = ["ADMIN", "SUPER_ADMIN", "MENTAL_HEALTH_PROFESSIONAL", "SUPERVISOR"];
 
@@ -66,7 +67,8 @@ function ViewLoader() {
     admin: AdminDashboardView, "admin-personnel": AdminPersonnelView,
     "admin-person": AdminPersonView, "admin-risk": AdminRiskView,
     "admin-alerts": AdminAlertsView, "admin-analytics": AdminAnalyticsView,
-    "admin-audit": AdminAuditView, "admin-settings": AdminSettingsView,
+    "admin-monitoring": AdminMonitoringView, "admin-audit": AdminAuditView,
+    "admin-settings": AdminSettingsView,
   };
   const C = map[view] ?? LandingView;
   return <C />;

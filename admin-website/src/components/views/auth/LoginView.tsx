@@ -35,10 +35,10 @@ const schema = z.object({
 type FormInput = z.input<typeof schema>;
 type FormValues = z.output<typeof schema>;
 
-const DEV_ADMIN_CREDENTIALS: { email: string; label: string }[] = [
-  { email: "admin@sentinel.dev", label: "Administrator" },
-  { email: "pro@sentinel.dev", label: "Mental Health Professional" },
-  { email: "supervisor@sentinel.dev", label: "Supervisor" },
+const DEV_ADMIN_CREDENTIALS: { email: string; password: string; label: string }[] = [
+  { email: "admin@sentinel.mil", password: "sentinel-admin-2024", label: "Administrator" },
+  { email: "mhp@sentinel.mil", password: "sentinel-mhp-2024", label: "Mental Health Professional" },
+  { email: "supervisor@sentinel.mil", password: "sentinel-super-2024", label: "Supervisor" },
 ];
 
 const ADMIN_ROLES = ["ADMIN", "SUPER_ADMIN", "MENTAL_HEALTH_PROFESSIONAL", "SUPERVISOR"];
@@ -91,9 +91,9 @@ export default function LoginView() {
     }
   }
 
-  function fillDev(email: string) {
+  function fillDev(email: string, password: string) {
     form.setValue("email", email);
-    form.setValue("password", "Sentinel@2025");
+    form.setValue("password", password);
     form.clearErrors("password");
     setLockedMsg(null);
     form.setFocus("password");
@@ -211,17 +211,14 @@ export default function LoginView() {
         </AlertTitle>
         <AlertDescription className="text-xs text-muted-foreground">
           <p className="mb-2">
-            Development password for seeded accounts:{" "}
-            <code className="rounded bg-background px-1 py-0.5 font-mono">
-              Sentinel@2025
-            </code>
+            Development-only seeded cloud accounts (remove this panel for production deployments).
           </p>
           <ul className="space-y-1">
             {DEV_ADMIN_CREDENTIALS.map((c) => (
               <li key={c.email}>
                 <button
                   type="button"
-                  onClick={() => fillDev(c.email)}
+                  onClick={() => fillDev(c.email, c.password)}
                   className="font-mono text-xs text-primary underline-offset-2 hover:underline"
                 >
                   {c.email}

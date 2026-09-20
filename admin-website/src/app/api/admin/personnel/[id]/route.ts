@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+ import { NextRequest } from "next/server";
 import { db } from "@/lib/db";
 import { requirePermission } from "@/lib/auth";
 import { hasPermission } from "@/lib/constants";

@@ -1,9 +1,47 @@
 services:
   - type: web
-    name: ciphervault-web
+    name: crpf-mhs-backend
     runtime: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app
+    plan: free
+    region: singapore
+    branch: main
+    autoDeployTrigger: commit
+    buildCommand: pip install --no-cache-dir -r backend/requirements.txt
+    preDeployCommand: cd backend && python manage.py migrate
+    initialDeployHook: cd backend && python manage.py bootstrap-admin
+    startCommand: cd backend && python -m uvicorn main:app --host 0.0.0.0 --port $PORT --workers 1 --proxy-headers --forwarded-allow-ips=*
+    healthCheckPath: /health/ready
+    maxShutdownDelaySeconds: 30
+    buildFilter:
+      paths:
+        - backend/**
+        - render.yaml
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.9
+      - key: ENV
+        value: production
+      - key: DEBUG
+        value: "false"
+      - key: SQL_ECHO
+        value: "false"
+      - key: PYTHONUNBUFFERED
+        value: "1"
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: BOOTSTRAP_ADMIN_EMAIL
+        sync: false
+      - key: BOOTSTRAP_ADMIN_PASSWORD
+        sync: false
+      - key: BOOTSTRAP_ADMIN_NAME
+        value: CRPF Platform Administrator
+      - key: DB_POOL_SIZE
+        value: "3"
+      - key: DB_MAX_OVERFLOW
+        value: "2"
+      - key: DB_POOL_TIMEOUT_SECONDS
+        value: "15"
+      - key: DB_POOL_RECYCLE_SECONDS
+        value: "300"

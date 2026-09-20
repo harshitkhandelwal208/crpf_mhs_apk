@@ -12,6 +12,7 @@ import com.example.myapplication.models.SupportRequest;
 import com.example.myapplication.models.SupportResponse;
 import com.example.myapplication.models.VoiceTranscriptionResponse;
 
+
 import okhttp3.MultipartBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -36,6 +37,7 @@ public interface SentinelApiService {
 
     @POST("api/journals")
     Call<JournalResponse> createJournal(@Body JournalRequest request);
+
 
     @Multipart
     @POST("api/voice/transcribe")

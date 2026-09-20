@@ -6,8 +6,8 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.myapplication.api.ApiClient;
@@ -17,13 +17,10 @@ import com.example.myapplication.databinding.ActivityMainBinding;
 import com.example.myapplication.models.UserResponse;
 import com.example.myapplication.models.ChatResponse;
 import com.example.myapplication.models.JournalResponse;
+import com.example.myapplication.sync.JournalSyncStatus;
 
 import java.util.Calendar;
 import java.util.List;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -38,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
 
         AuthManager authManager = new AuthManager(this);
-        SentinelApiService apiService = ApiClient.getClient(authManager).create(SentinelApiService.class);
+        SentinelApiService apiService = ApiClient.getClient(this, authManager).create(SentinelApiService.class);
 
         MainViewModel.Factory factory = new MainViewModel.Factory(authManager, apiService, this);
         viewModel = new ViewModelProvider(this, factory).get(MainViewModel.class);
@@ -102,6 +99,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         viewModel.isLoading.observe(this, this::setLoginLoading);
+        viewModel.journalSyncStatus.observe(this, this::renderJournalSyncStatus);
 
         viewModel.errorMessageResId.observe(this, resId -> {
             if (resId != null) {
@@ -211,26 +209,26 @@ public class MainActivity extends AppCompatActivity {
                 ? companionInput.getText().toString().trim()
                 : "I would like to talk through how I am feeling today.";
 
-        responseText.setText("Consulting CRPF Mental Health On-Device Neural Engine...");
-        viewModel.sendChat(message, null, new Callback<>() {
+        responseText.setText(R.string.status_local_companion_thinking);
+        viewModel.sendChat(message, null, new MainViewModel.LocalResultCallback<>() {
             @Override
-            public void onResponse(@NonNull Call<ChatResponse> call, @NonNull Response<ChatResponse> response) {
-                if (response.isSuccessful() && response.body() != null && response.body().getMessage() != null) {
-                    responseText.setText(response.body().getMessage().getContent());
+            public void onSuccess(ChatResponse response) {
+                if (response != null && response.getMessage() != null) {
+                    responseText.setText(response.getMessage().getContent());
                     if (companionInput != null) {
                         companionInput.setText("");
                     }
-                    if (response.body().isSupportEscalation()) {
-                        Toast.makeText(MainActivity.this, "CRPF Crisis Protocol: Please use Get Support for confidential assistance.", Toast.LENGTH_LONG).show();
+                    if (response.isSupportEscalation()) {
+                        Toast.makeText(MainActivity.this, R.string.msg_crisis_support, Toast.LENGTH_LONG).show();
                     }
                 } else {
-                    responseText.setText("Your companion is unavailable right now. Please try again or contact support.");
+                    responseText.setText(R.string.error_companion_unavailable);
                 }
             }
 
             @Override
-            public void onFailure(@NonNull Call<ChatResponse> call, @NonNull Throwable throwable) {
-                responseText.setText("Your companion is unavailable right now. Please check your connection.");
+            public void onError(Throwable throwable) {
+                responseText.setText(R.string.error_companion_unavailable);
             }
         });
     }
@@ -242,22 +240,51 @@ public class MainActivity extends AppCompatActivity {
             journalInput.setError("Write something before saving");
             return;
         }
-        viewModel.saveJournal(content, "okay", "SUBMITTED", new Callback<>() {
+        viewModel.saveJournal(content, "okay", "SUBMITTED", new MainViewModel.LocalResultCallback<>() {
             @Override
-            public void onResponse(@NonNull Call<JournalResponse> call, @NonNull Response<JournalResponse> response) {
-                if (response.isSuccessful()) {
-                    journalInput.setText("");
-                    Toast.makeText(MainActivity.this, "Your private journal entry was saved.", Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(MainActivity.this, "We could not save your journal entry.", Toast.LENGTH_LONG).show();
-                }
+            public void onSuccess(JournalResponse response) {
+                journalInput.setText("");
+                Toast.makeText(MainActivity.this, R.string.msg_journal_saved_locally, Toast.LENGTH_SHORT).show();
             }
 
             @Override
-            public void onFailure(@NonNull Call<JournalResponse> call, @NonNull Throwable throwable) {
-                Toast.makeText(MainActivity.this, "Connection unavailable. Your entry was not submitted.", Toast.LENGTH_LONG).show();
+            public void onError(Throwable throwable) {
+                Toast.makeText(MainActivity.this, R.string.error_journal_local_save, Toast.LENGTH_LONG).show();
             }
         });
+    }
+
+    private void renderJournalSyncStatus(JournalSyncStatus status) {
+        if (status == null) {
+            return;
+        }
+        int textRes;
+        int colorRes;
+        switch (status) {
+            case SYNCING:
+                textRes = R.string.sync_status_syncing;
+                colorRes = R.color.teal_700;
+                break;
+            case SAVED_OFFLINE:
+                textRes = R.string.sync_status_saved_offline;
+                colorRes = R.color.warning;
+                break;
+            case SYNCED:
+            default:
+                textRes = R.string.sync_status_synced;
+                colorRes = R.color.success;
+                break;
+        }
+
+        int color = ContextCompat.getColor(this, colorRes);
+        TextView dashboardStatus = findViewById(R.id.dashboard_sync_status);
+        TextView journalStatus = findViewById(R.id.journal_sync_status);
+        dashboardStatus.setText(textRes);
+        dashboardStatus.setTextColor(color);
+        dashboardStatus.setContentDescription(getString(textRes));
+        journalStatus.setText(textRes);
+        journalStatus.setTextColor(color);
+        journalStatus.setContentDescription(getString(textRes));
     }
 
     private void setLoginLoading(boolean loading) {

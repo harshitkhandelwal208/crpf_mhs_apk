@@ -2,7 +2,6 @@
 Auth router - login, refresh token, logout.
 Public endpoint for login; authenticated for refresh/logout.
 """
-import json
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
@@ -34,7 +33,6 @@ async def login(
     db: Session = Depends(get_db),
 ):
     """Authenticate user and return JWT tokens."""
-    user = authenticate_user(body.username, body.password, db)
     user = authenticate_user(body.identifier, body.password, db)
     if not user:
         raise HTTPException(

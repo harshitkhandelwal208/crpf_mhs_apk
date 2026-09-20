@@ -18,9 +18,6 @@ export const PERMISSIONS: Record<Role, Permission[]> = {
   ],
   ADMIN: [
     "VIEW_USER_PROFILE",
-    "VIEW_ASSESSMENT",
-    "VIEW_JOURNAL",
-    "VIEW_AI_CONVERSATION",
     "VIEW_RISK_INDICATOR",
     "MANAGE_ALERTS",
     "MANAGE_USERS",
@@ -143,6 +140,7 @@ export const ADMIN_NAV: NavItem[] = [
   { key: "admin-risk", label: "Risk Monitoring", icon: "ShieldAlert" },
   { key: "admin-alerts", label: "Alerts", icon: "BellRing" },
   { key: "admin-analytics", label: "Analytics", icon: "BarChart3" },
+  { key: "admin-monitoring", label: "Demo Monitoring", icon: "MonitorDot" },
   { key: "admin-audit", label: "Audit Logs", icon: "ScrollText" },
   { key: "admin-settings", label: "System Settings", icon: "Settings" },
 ];

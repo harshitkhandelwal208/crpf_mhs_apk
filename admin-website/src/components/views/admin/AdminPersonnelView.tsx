@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { type FormEvent, type ReactNode, useEffect, useState, useCallback, useRef } from "react";
 import { useApp } from "@/lib/store";
 import { api, ApiRequestError } from "@/lib/api";
 import {
@@ -10,6 +10,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
@@ -26,12 +31,31 @@ import {
 } from "./_shared";
 import {
   Search, Users, ChevronLeft, ChevronRight, Filter,
-  ChevronRight as ChevR,
+  ChevronRight as ChevR, Loader2, Plus, ShieldCheck,
 } from "lucide-react";
+import { toast } from "sonner";
 
 type Resp = {
   rows: PersonnelRowDTO[]; total: number; page: number; pageSize: number;
   pages: number; units: string[];
+};
+
+type PersonnelCreateForm = {
+  fullName: string;
+  email: string;
+  serviceNumber: string;
+  rank: string;
+  unit: string;
+  initialPassword: string;
+};
+
+const EMPTY_PERSONNEL_FORM: PersonnelCreateForm = {
+  fullName: "",
+  email: "",
+  serviceNumber: "",
+  rank: "",
+  unit: "",
+  initialPassword: "",
 };
 
 const LEVELS: WellbeingLevel[] = ["NORMAL", "LOW", "MODERATE", "ELEVATED", "HIGH", "CRITICAL"];
@@ -45,7 +69,7 @@ const STATUS_STYLE: Record<string, string> = {
 };
 
 export default function AdminPersonnelView() {
-  const { navigate, params, language } = useApp();
+  const { navigate, params, language, user } = useApp();
 
   const [q, setQ] = useState(params.q ?? "");
   const [unit, setUnit] = useState(params.unit ?? "all");
@@ -56,6 +80,8 @@ export default function AdminPersonnelView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [forbidden, setForbidden] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const canManagePersonnel = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN";
 
   // Debounced search input
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -107,7 +133,20 @@ export default function AdminPersonnelView() {
 
   return (
     <AdminPage>
-      <Header language={language} />
+      <Header
+        language={language}
+        canCreate={canManagePersonnel}
+        onCreate={() => setCreateOpen(true)}
+      />
+
+      <CreatePersonnelDialog
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onCreated={() => {
+          setPage(1);
+          void load();
+        }}
+      />
 
       {/* Filters */}
       <Card className="mb-4 rounded-xl border border-border/60 bg-card shadow-sm">
@@ -279,6 +318,173 @@ export default function AdminPersonnelView() {
   );
 }
 
+function CreatePersonnelDialog({
+  open,
+  onOpenChange,
+  onCreated,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onCreated: () => void;
+}) {
+  const [form, setForm] = useState<PersonnelCreateForm>(EMPTY_PERSONNEL_FORM);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  function update(field: keyof PersonnelCreateForm, value: string) {
+    setForm((current) => ({ ...current, [field]: value }));
+  }
+
+  function handleOpenChange(nextOpen: boolean) {
+    if (submitting) return;
+    onOpenChange(nextOpen);
+    if (!nextOpen) {
+      setForm(EMPTY_PERSONNEL_FORM);
+      setError(null);
+    }
+  }
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSubmitting(true);
+    setError(null);
+    try {
+      await api.post<PersonnelRowDTO>("/api/admin/personnel", form);
+      toast.success("Personnel account created", {
+        description: "The account can now sign in through the mobile application.",
+      });
+      setForm(EMPTY_PERSONNEL_FORM);
+      onOpenChange(false);
+      onCreated();
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "Could not create account");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+        <DialogHeader>
+          <div className="mb-1 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <ShieldCheck className="h-5 w-5" />
+          </div>
+          <DialogTitle className="font-serif text-xl">Enroll personnel</DialogTitle>
+          <DialogDescription>
+            Create a mobile account and operational profile. Share the initial password through an approved channel; it is never retained by this console.
+          </DialogDescription>
+        </DialogHeader>
+
+        <form onSubmit={submit} className="space-y-5">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <FormField label="Full name" htmlFor="personnel-name">
+              <Input
+                id="personnel-name"
+                value={form.fullName}
+                onChange={(event) => update("fullName", event.target.value)}
+                autoComplete="off"
+                maxLength={255}
+                required
+              />
+            </FormField>
+            <FormField label="Official email" htmlFor="personnel-email">
+              <Input
+                id="personnel-email"
+                type="email"
+                value={form.email}
+                onChange={(event) => update("email", event.target.value)}
+                autoComplete="off"
+                maxLength={255}
+                required
+              />
+            </FormField>
+            <FormField label="Service number" htmlFor="personnel-service-number">
+              <Input
+                id="personnel-service-number"
+                value={form.serviceNumber}
+                onChange={(event) => update("serviceNumber", event.target.value)}
+                autoComplete="off"
+                maxLength={50}
+                required
+              />
+            </FormField>
+            <FormField label="Rank" htmlFor="personnel-rank">
+              <Input
+                id="personnel-rank"
+                value={form.rank}
+                onChange={(event) => update("rank", event.target.value)}
+                autoComplete="off"
+                maxLength={50}
+                required
+              />
+            </FormField>
+            <FormField label="Unit" htmlFor="personnel-unit">
+              <Input
+                id="personnel-unit"
+                value={form.unit}
+                onChange={(event) => update("unit", event.target.value)}
+                autoComplete="off"
+                maxLength={100}
+                required
+              />
+            </FormField>
+            <FormField label="Initial password" htmlFor="personnel-password">
+              <Input
+                id="personnel-password"
+                type="password"
+                value={form.initialPassword}
+                onChange={(event) => update("initialPassword", event.target.value)}
+                autoComplete="new-password"
+                minLength={12}
+                maxLength={128}
+                required
+              />
+            </FormField>
+          </div>
+
+          <p className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
+            Passwords require at least 12 characters with uppercase, lowercase, a number, and a symbol. Development demonstration passwords are blocked.
+          </p>
+
+          {error && (
+            <p role="alert" className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+              {error}
+            </p>
+          )}
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={() => handleOpenChange(false)} disabled={submitting}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={submitting}>
+              {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
+              Create mobile account
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function FormField({
+  label,
+  htmlFor,
+  children,
+}: {
+  label: string;
+  htmlFor: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={htmlFor}>{label}</Label>
+      {children}
+    </div>
+  );
+}
+
 function FilterSelect({
   value, onChange, placeholder, items, ariaLabel,
 }: {
@@ -290,7 +496,7 @@ function FilterSelect({
 }) {
   return (
     <Select value={value} onValueChange={onChange}>
-      <SelectTrigger aria-label={ariaLabel} className="w-[160px]">
+      <SelectTrigger aria-label={ariaLabel} className="w-40">
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent>
@@ -363,16 +569,32 @@ function PersonnelSkeleton() {
   );
 }
 
-function Header({ language }: { language: "en" | "hi" }) {
+function Header({
+  language,
+  canCreate = false,
+  onCreate,
+}: {
+  language: "en" | "hi";
+  canCreate?: boolean;
+  onCreate?: () => void;
+}) {
   return (
-    <div className="mb-6 flex flex-col gap-1">
-      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">{translate("Directory", language)}</p>
-      <h1 className="font-serif text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-        {translate("Personnel", language)}
-      </h1>
-      <p className="mt-1 text-sm text-muted-foreground">
-        {translate("Search and review operational records. Sensitive clinical content is restricted to authorized roles.", language)}
-      </p>
+    <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+      <div className="flex flex-col gap-1">
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-primary">{translate("Directory", language)}</p>
+        <h1 className="font-serif text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+          {translate("Personnel", language)}
+        </h1>
+        <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
+          {translate("Search and review operational records. Sensitive clinical content is restricted to authorized roles.", language)}
+        </p>
+      </div>
+      {canCreate && onCreate && (
+        <Button onClick={onCreate} className="shrink-0">
+          <Plus className="mr-2 h-4 w-4" />
+          {translate("Enroll personnel", language)}
+        </Button>
+      )}
     </div>
   );
 }

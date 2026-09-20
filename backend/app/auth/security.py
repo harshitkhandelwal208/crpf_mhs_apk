@@ -38,6 +38,35 @@ from app.models.refresh_token import RefreshToken
 from app.models.permission import Permission
 
 
+KNOWN_DEVELOPMENT_PASSWORDS = {
+    "sentinel-admin-2024",
+    "sentinel-mhp-2024",
+    "sentinel-pers-2024",
+    "sentinel-super-2024",
+}
+
+
+def validate_password_strength(
+    password: str,
+    *,
+    minimum_length: int = 12,
+    reject_development_passwords: bool = True,
+) -> None:
+    """Reject weak or known demonstration passwords before hashing."""
+    if len(password) < minimum_length:
+        raise ValueError(f"Password must contain at least {minimum_length} characters")
+    if reject_development_passwords and password in KNOWN_DEVELOPMENT_PASSWORDS:
+        raise ValueError("Password cannot use a development credential")
+    required_groups = (
+        any(character.islower() for character in password),
+        any(character.isupper() for character in password),
+        any(character.isdigit() for character in password),
+        any(not character.isalnum() for character in password),
+    )
+    if not all(required_groups):
+        raise ValueError("Password must include upper, lower, numeric, and symbol characters")
+
+
 def _hash_token(token: str) -> str:
     """Hash a refresh token for storage (don't store raw tokens)."""
     return hashlib.sha256(token.encode()).hexdigest()

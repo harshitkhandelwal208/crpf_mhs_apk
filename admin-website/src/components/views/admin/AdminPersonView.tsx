@@ -34,7 +34,7 @@ type Profile = {
   status: UserStatus; createdAt: string; lastLoginAt: string | null;
   lastActiveAt: string | null; onboardingComplete: boolean;
 };
-type LatestRisk = { level: WellbeingLevel; score: number; source: string; createdAt: string } | null;
+type LatestRisk = { level: WellbeingLevel; score: number | null; source: string; createdAt: string } | null;
 type RiskTrendItem = { level: WellbeingLevel; source: string; createdAt: string };
 type PersonAlert = {
   id: string; severity: AlertSeverity; status: AlertStatus; reason: string;
@@ -204,7 +204,10 @@ export default function AdminPersonView() {
                     <div className="flex flex-wrap items-center gap-3">
                       <LevelPill level={data.latestRisk.level} size="md" />
                       <span className="text-sm text-muted-foreground">
-                        Score <span className="font-semibold text-foreground tabular-nums">{Math.round(data.latestRisk.score)}/100</span>
+                        Score{" "}
+                        <span className="font-semibold text-foreground tabular-nums">
+                          {data.latestRisk.score == null ? "Restricted" : `${Math.round(data.latestRisk.score)}/100`}
+                        </span>
                       </span>
                       <span className="text-sm text-muted-foreground">·</span>
                       <span className="text-sm text-muted-foreground">

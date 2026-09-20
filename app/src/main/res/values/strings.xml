@@ -12,4 +12,12 @@
     <string name="msg_signed_out">You have been signed out.</string>
     <string name="status_signing_in">Signing in&#8230;</string>
     <string name="action_continue_dashboard">Continue to my dashboard</string>
+    <string name="sync_status_synced">Cloud sync: Synced</string>
+    <string name="sync_status_saved_offline">Cloud sync: Saved on this device</string>
+    <string name="sync_status_syncing">Cloud sync: Syncing when connected&#8230;</string>
+    <string name="status_local_companion_thinking">Preparing an on-device response&#8230;</string>
+    <string name="msg_crisis_support">CRPF Crisis Protocol: Please use Get Support for confidential assistance.</string>
+    <string name="error_companion_unavailable">Your on-device companion is unavailable right now. Please try again or contact support.</string>
+    <string name="msg_journal_saved_locally">Your private entry was saved on this device. Cloud sync will follow when available.</string>
+    <string name="error_journal_local_save">We could not save this entry on your device. Please try again.</string>
 </resources>

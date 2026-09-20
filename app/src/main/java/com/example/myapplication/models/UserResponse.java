@@ -9,7 +9,7 @@ public class UserResponse {
     @SerializedName("email")
     private String email;
 
-    @SerializedName("name")
+    @SerializedName(value = "full_name", alternate = {"name"})
     private String fullName;
 
     @SerializedName("role")

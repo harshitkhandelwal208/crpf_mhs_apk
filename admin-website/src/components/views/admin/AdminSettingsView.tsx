@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import { useApp } from "@/lib/store";
-import { api, ApiRequestError } from "@/lib/api";
+
 import { toast } from "sonner";
 import {
   Card, CardContent, CardDescription, CardHeader, CardTitle,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+
 import { Badge } from "@/components/ui/badge";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
@@ -17,15 +17,11 @@ import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Check, X, ShieldCheck, Server, KeyRound, Database, RefreshCw, Settings2, Bell } from "lucide-react";
+import { Check, X, ShieldCheck, Server, KeyRound, Database, Settings2, Bell } from "lucide-react";
 import {
   AdminPage,
 } from "./_shared";
-import {
-  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
-  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+
 import {
   APP_NAME, APP_TAGLINE, CONSENT_VERSION, PERMISSIONS, PERMISSION_LABELS,
   ROLE_LABELS, SENSITIVE_PERMISSIONS,
@@ -41,8 +37,6 @@ const ALL_PERMISSIONS: Permission[] = [
 
 export default function AdminSettingsView() {
   const { user } = useApp();
-  const [seeding, setSeeding] = useState(false);
-  const [dialogOpen, setDialogOpen] = useState(false);
 
   // Settings State
   const [mfaEnabled, setMfaEnabled] = useState(true);
@@ -55,25 +49,6 @@ export default function AdminSettingsView() {
   const aiProvider = process.env.NEXT_PUBLIC_AI_PROVIDER ?? null;
   const isDev = process.env.NODE_ENV !== "production";
 
-  const runSeed = async () => {
-    setSeeding(true);
-    setDialogOpen(false);
-    try {
-      const r = await api.post<{ users?: number; message?: string; [k: string]: unknown }>("/api/seed?force=1");
-      toast.success("Seed data regenerated", {
-        description: r && typeof r === "object"
-          ? `${(r as any).users ?? "?"} users · ${(r as any).alerts ?? "?"} alerts`
-          : "Database re-seeded.",
-      });
-    } catch (e) {
-      const msg = e instanceof ApiRequestError
-        ? (e.status === 403 ? "Seeding is disabled in production." : e.message)
-        : e instanceof Error ? e.message : "Unknown error";
-      toast.error("Seed failed", { description: msg });
-    } finally {
-      setSeeding(false);
-    }
-  };
 
   return (
     <AdminPage>
@@ -130,9 +105,9 @@ export default function AdminSettingsView() {
               <InfoRow
                 icon={Database}
                 label="Database"
-                value={<Badge variant="outline" className="ring-1 ring-border">SQLite (Prisma)</Badge>}
+                value={<Badge variant="outline" className="ring-1 ring-border">PostgreSQL · shared cloud API</Badge>}
               />
-              <InfoRow label="Auth" value={<Badge variant="outline" className="ring-1 ring-border">Session cookie</Badge>} />
+              <InfoRow label="Auth" value={<Badge variant="outline" className="ring-1 ring-border">JWT · HTTP-only BFF cookie</Badge>} />
             </dl>
           </CardContent>
         </Card>
@@ -143,10 +118,10 @@ export default function AdminSettingsView() {
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2">
             <Settings2 className="h-4 w-4 text-muted-foreground" />
-            Security & Operations
+            Policy preview (demonstration)
           </CardTitle>
           <CardDescription>
-            Configure active system behaviors, notification routing, and security policies.
+            Interface-only policy mockups for the demonstration. These controls do not change cloud enforcement.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
@@ -158,7 +133,7 @@ export default function AdminSettingsView() {
                 <Label htmlFor="mfa" className="text-sm font-medium">Require MFA for Admins</Label>
                 <p className="text-xs text-muted-foreground">Force two-factor auth for roles with sensitive access.</p>
               </div>
-              <Switch id="mfa" checked={mfaEnabled} onCheckedChange={(val) => { setMfaEnabled(val); toast.success("MFA policy updated"); }} />
+              <Switch id="mfa" checked={mfaEnabled} onCheckedChange={(val) => { setMfaEnabled(val); toast.success("Demo preference updated for this session"); }} />
             </div>
             
             <div className="flex items-center justify-between">
@@ -168,7 +143,7 @@ export default function AdminSettingsView() {
                 </Label>
                 <p className="text-xs text-muted-foreground">Send immediate emails to supervisors for critical indicators.</p>
               </div>
-              <Switch id="alerts" checked={emailAlerts} onCheckedChange={(val) => { setEmailAlerts(val); toast.success("Alert preferences updated"); }} />
+              <Switch id="alerts" checked={emailAlerts} onCheckedChange={(val) => { setEmailAlerts(val); toast.success("Demo preference updated for this session"); }} />
             </div>
             
             <div className="flex items-center justify-between">
@@ -176,7 +151,7 @@ export default function AdminSettingsView() {
                 <Label htmlFor="maintenance" className="text-sm font-medium">Maintenance Mode</Label>
                 <p className="text-xs text-muted-foreground">Suspend non-admin access during system updates.</p>
               </div>
-              <Switch id="maintenance" checked={maintenanceMode} onCheckedChange={(val) => { setMaintenanceMode(val); toast(val ? "Maintenance mode enabled" : "Maintenance mode disabled"); }} />
+              <Switch id="maintenance" checked={maintenanceMode} onCheckedChange={(val) => { setMaintenanceMode(val); toast("Demo preference updated for this session"); }} />
             </div>
           </div>
 
@@ -184,7 +159,7 @@ export default function AdminSettingsView() {
           <div className="flex flex-col gap-6">
             <div className="space-y-2">
               <Label htmlFor="retention" className="text-sm font-medium">Audit Log Retention</Label>
-              <Select value={retentionPeriod} onValueChange={(val) => { setRetentionPeriod(val); toast.success("Retention policy updated"); }}>
+              <Select value={retentionPeriod} onValueChange={(val) => { setRetentionPeriod(val); toast.success("Demo preference updated for this session"); }}>
                 <SelectTrigger id="retention" className="w-full sm:w-[240px]">
                   <SelectValue placeholder="Select period" />
                 </SelectTrigger>
@@ -263,61 +238,6 @@ export default function AdminSettingsView() {
         </CardContent>
       </Card>
 
-      {/* Danger zone */}
-      <Card className="mt-6 border-amber-300/70 dark:border-amber-400/30">
-        <CardHeader className="pb-2">
-          <div className="flex items-center gap-2">
-            <RefreshCw className="h-4 w-4 text-amber-700 dark:text-amber-300" />
-            <CardTitle className="text-base">Development tools</CardTitle>
-          </div>
-          <CardDescription>
-            These actions are intended for development &amp; staging only.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm font-medium text-foreground">Regenerate development seed data</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                Truncates and re-seeds the SQLite database with synthetic personnel, journals, alerts, and audit logs.
-                All existing data will be replaced. Audit-logged.
-              </p>
-              {!isDev && (
-                <p className="mt-1.5 inline-flex items-center gap-1.5 text-xs text-rose-700 dark:text-rose-300">
-                  <X className="h-3 w-3" /> Disabled in production.
-                </p>
-              )}
-            </div>
-            <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
-              <AlertDialogTrigger asChild>
-                <Button variant="outline" className="border-amber-300 text-amber-800 hover:bg-amber-50 dark:border-amber-400/40 dark:text-amber-300 dark:hover:bg-amber-500/10">
-                  <RefreshCw className={`mr-2 h-4 w-4 ${seeding ? "animate-spin" : ""}`} />
-                  Regenerate seed
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Regenerate seed data?</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    This will permanently delete and recreate all synthetic personnel, journals,
-                    assessments, alerts, and audit logs in the connected database. This action
-                    cannot be undone. Recommended only for development and staging environments.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={(e) => { e.preventDefault(); runSeed(); }}
-                    className="bg-amber-700 text-white hover:bg-amber-800 dark:bg-amber-600 dark:hover:bg-amber-500"
-                  >
-                    Yes, regenerate
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Signed-in role summary */}
       {user && (

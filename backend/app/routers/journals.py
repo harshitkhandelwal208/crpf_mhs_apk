@@ -3,10 +3,10 @@ Journals router - personnel journal logging and clinical review
 Supports both Android app personnel submissions and permission-gated clinical views.
 """
 from datetime import datetime, timezone
-import uuid
+
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from sqlalchemy.orm import Session
 from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.auth.dependencies import get_current_user, require_permission
@@ -14,6 +14,7 @@ from app.models.user import User
 from app.models.personnel import Personnel, PersonnelStatus, RiskLevel
 from app.models.journal import Journal
 from app.models.audit_log import AuditLog
+from app.models.sync_receipt import SyncReceipt
 from app.schemas.schemas import (
     JournalCreateRequest,
     JournalMobileResponse,
@@ -38,6 +39,29 @@ async def create_journal(
     Submits a private personnel journal entry from Android APK or Web.
     Analyzes sentiment and welfare indicators with the HK AI engine.
     """
+    # Mobile workers retry after network interruption. A persisted receipt lets the
+    # same client request return its original journal instead of creating duplicates.
+    if body.client_request_id:
+        receipt = db.scalar(
+            select(SyncReceipt).where(
+                SyncReceipt.user_id == current_user.id,
+                SyncReceipt.resource_type == "journal",
+                SyncReceipt.client_request_id == body.client_request_id,
+            )
+        )
+        if receipt:
+            existing = db.get(Journal, receipt.resource_id)
+            if existing:
+                return JournalMobileResponse(
+                    journal=JournalItem(
+                        id=existing.id,
+                        mood=existing.mood,
+                        content=existing.content,
+                        status=existing.status,
+                        created_at=existing.created_at.isoformat(),
+                    )
+                )
+
     # Ensure a linked personnel record exists for the user
     personnel = db.scalar(select(Personnel).where(Personnel.user_id == current_user.id))
     if not personnel:
@@ -95,6 +119,14 @@ async def create_journal(
     )
     db.add(journal)
     db.flush()
+
+    if body.client_request_id:
+        db.add(SyncReceipt(
+            user_id=current_user.id,
+            resource_type="journal",
+            client_request_id=body.client_request_id,
+            resource_id=journal.id,
+        ))
 
     # Update personnel last check in
     personnel.last_check_in = datetime.now(timezone.utc)
@@ -181,4 +213,7 @@ async def get_personnel_journals(
         .all()
     )
 
-    return JournalListResponse(items=journals, total=len(journals))
+    return JournalListResponse(
+        items=[JournalResponse.model_validate(journal) for journal in journals],
+        total=len(journals),
+    )

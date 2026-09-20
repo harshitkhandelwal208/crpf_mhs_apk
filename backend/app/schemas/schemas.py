@@ -3,7 +3,7 @@ Pydantic schemas for all API request/response DTOs.
 These define the canonical API contract shared by Android and Web clients.
 """
 from datetime import datetime
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, model_validator
 
 from app.models.user import UserRole
 from app.models.personnel import PersonnelStatus, RiskLevel
@@ -14,10 +14,15 @@ from app.models.assessment import AssessmentType
 # ──────────────────────────── Auth ────────────────────────────
 
 class LoginRequest(BaseModel):
-    username: str = Field(..., description="User email address")
     username: str | None = Field(None, description="User email or username")
     email: str | None = Field(None, description="User email address")
     password: str = Field(..., min_length=1)
+
+    @model_validator(mode="after")
+    def require_identifier(self):
+        if not self.email and not self.username:
+            raise ValueError("Either email or username is required")
+        return self
 
     @property
     def identifier(self) -> str:
@@ -366,6 +371,7 @@ class JournalCreateRequest(BaseModel):
     mood: str = "okay"
     status: str = "SUBMITTED"
     title: str | None = None
+    client_request_id: str | None = Field(None, min_length=8, max_length=128)
 
 
 class JournalItem(BaseModel):
