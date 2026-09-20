@@ -56,19 +56,166 @@ public class KnowledgeBase {
 
     private final List<ClinicalProtocol> protocols = new ArrayList<>();
     private final Map<String, float[]> keywordVectors = new HashMap<>();
+    private final Map<String, float[]> tensors = new HashMap<>();
+    private final Map<String, long[]> tensorShapes = new HashMap<>();
+    private JsonObject hkMetadata = null;
     private boolean isLoaded = false;
 
     public KnowledgeBase() {}
 
     /**
      * Initializes knowledge base from Android Context assets.
+     * Prioritizes the high-performance HKNT 1.0.4 binary format (.hk),
+     * with graceful fallback to rag_db.json.
      */
     public synchronized void loadFromContext(Context context) {
         if (isLoaded || context == null) return;
+
+        // 1. Primary: Load from official HKNT 1.0.4 binary package (.hk)
+        try (InputStream is = context.getAssets().open("sentinel_mental_health.hk")) {
+            if (loadFromHkStream(is)) {
+                return;
+            }
+        } catch (Exception ignored) {
+            // Fall back to JSON
+        }
+
+        // 2. Fallback: Load from rag_db.json
         try (InputStream is = context.getAssets().open("rag_db.json")) {
             loadFromStream(is);
         } catch (Exception e) {
             System.err.println("[KnowledgeBase] Could not load from assets: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Parses and loads tensors directly from an HKNT 1.0.4 binary stream.
+     */
+    public synchronized boolean loadFromHkStream(InputStream is) {
+        if (isLoaded || is == null) return isLoaded;
+        try {
+            java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream();
+            byte[] buffer = new byte[8192];
+            int n;
+            while ((n = is.read(buffer)) != -1) {
+                baos.write(buffer, 0, n);
+            }
+            byte[] data = baos.toByteArray();
+            if (data.length < 128) return false;
+
+            java.nio.ByteBuffer bb = java.nio.ByteBuffer.wrap(data).order(java.nio.ByteOrder.LITTLE_ENDIAN);
+            byte[] magicBytes = new byte[4];
+            bb.get(magicBytes);
+            String magic = new String(magicBytes, StandardCharsets.US_ASCII);
+            if (!"HKNT".equals(magic)) {
+                return false;
+            }
+
+            short verMaj = bb.getShort();
+            short verMin = bb.getShort();
+            int flags = bb.getInt();
+            short align = bb.getShort();
+            short splitIdx = bb.getShort();
+            long tCount = bb.getLong();
+            long kvCount = bb.getLong();
+            long metaOff = bb.getLong();
+            long metaSize = bb.getLong();
+            long tocOff = bb.getLong();
+            long tocSize = bb.getLong();
+            long dataOff = bb.getLong();
+
+            if (metaOff <= 0 || metaSize <= 0 || metaOff + metaSize > data.length) {
+                return false;
+            }
+
+            String metaJson = new String(data, (int) metaOff, (int) metaSize, StandardCharsets.UTF_8);
+            JsonObject root = new JsonParser().parse(metaJson).getAsJsonObject();
+            this.hkMetadata = root;
+
+            // Parse Table of Contents (TOC) for all tensors
+            tensors.clear();
+            tensorShapes.clear();
+            if (tocOff > 0 && tCount > 0 && tocOff + tocSize <= data.length) {
+                bb.position((int) tocOff);
+                for (int t = 0; t < tCount; t++) {
+                    int nameLen = bb.getShort() & 0xFFFF;
+                    byte[] nameBytes = new byte[nameLen];
+                    bb.get(nameBytes);
+                    String tensorName = new String(nameBytes, StandardCharsets.UTF_8);
+                    int dtVal = bb.get() & 0xFF;
+                    int ndim = bb.get() & 0xFF;
+                    long[] shape = new long[ndim];
+                    int totalElements = 1;
+                    for (int d = 0; d < ndim; d++) {
+                        shape[d] = bb.getLong();
+                        totalElements *= (int) shape[d];
+                    }
+                    long offset = bb.getLong();
+                    long length = bb.getLong();
+
+                    if (dtVal == 0x00 && offset + length <= data.length) {
+                        float[] tensorData = new float[totalElements];
+                        int savedPos = bb.position();
+                        bb.position((int) offset);
+                        for (int e = 0; e < totalElements; e++) {
+                            tensorData[e] = bb.getFloat();
+                        }
+                        bb.position(savedPos);
+                        tensors.put(tensorName, tensorData);
+                        tensorShapes.put(tensorName, shape);
+                    }
+                }
+            }
+
+            JsonArray docs = root.has("documents") ? root.getAsJsonArray("documents") : null;
+            if (docs == null || docs.size() == 0) return false;
+
+            int numDocs = docs.size();
+            int dim = root.has("embedding_dim") ? root.get("embedding_dim").getAsInt() : 384;
+
+            protocols.clear();
+            keywordVectors.clear();
+
+            float[] embeddingsTensor = tensors.get("embeddings");
+
+            for (int i = 0; i < numDocs; i++) {
+                JsonObject doc = docs.get(i).getAsJsonObject();
+                String title = doc.has("title") ? doc.get("title").getAsString() : "Clinical Protocol";
+                String category = doc.has("category") ? doc.get("category").getAsString() : "General";
+                String content = doc.has("content") ? doc.get("content").getAsString() : "";
+
+                float[] vec = new float[dim];
+                if (embeddingsTensor != null && (i + 1) * dim <= embeddingsTensor.length) {
+                    System.arraycopy(embeddingsTensor, i * dim, vec, 0, dim);
+                } else {
+                    int tensorByteOffset = (int) dataOff + (i * dim * 4);
+                    if (tensorByteOffset + (dim * 4) <= data.length) {
+                        for (int d = 0; d < dim; d++) {
+                            vec[d] = bb.getFloat(tensorByteOffset + (d * 4));
+                        }
+                    }
+                }
+
+                List<String> keywords = new ArrayList<>();
+                for (String tw : title.toLowerCase().split("[^a-zA-Z0-9]+")) {
+                    if (tw.length() > 2) {
+                        keywords.add(tw);
+                        if (!keywordVectors.containsKey(tw)) {
+                            keywordVectors.put(tw, vec);
+                        }
+                    }
+                }
+
+                protocols.add(new ClinicalProtocol(title, category, content, vec, keywords));
+            }
+
+            isLoaded = true;
+            System.out.println("[KnowledgeBase] Loaded " + protocols.size() + " clinical protocols and " +
+                    tensors.size() + " multimodal tensors from HKNT 1.0.4 binary package.");
+            return true;
+        } catch (Exception e) {
+            System.err.println("[KnowledgeBase] Error parsing HKNT stream: " + e.getMessage());
+            return false;
         }
     }
 
@@ -254,5 +401,21 @@ public class KnowledgeBase {
             res = search(query, 0.15f, 400);
         }
         return res;
+    }
+
+    public synchronized float[] getTensor(String name) {
+        return tensors.get(name);
+    }
+
+    public synchronized long[] getTensorShape(String name) {
+        return tensorShapes.get(name);
+    }
+
+    public synchronized boolean hasTensor(String name) {
+        return tensors.containsKey(name);
+    }
+
+    public synchronized JsonObject getHkMetadata() {
+        return hkMetadata;
     }
 }

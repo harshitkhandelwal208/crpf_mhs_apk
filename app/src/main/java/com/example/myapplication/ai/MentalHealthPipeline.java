@@ -36,6 +36,8 @@ public class MentalHealthPipeline {
     private final ContextWindowManager contextManager;
     private final KnowledgeBase knowledgeBase;
     private final SentimentIntensityAnalyzer sentimentAnalyzer;
+    private final HKDistilBertClassifier distilBertClassifier;
+    private final HKNeuralLLM neuralLLM;
     private final CompositePipeline compositePipeline;
     private final List<Integer> recentScores = new ArrayList<>();
 
@@ -47,6 +49,8 @@ public class MentalHealthPipeline {
         this.contextManager = contextManager;
         this.knowledgeBase = new KnowledgeBase();
         this.sentimentAnalyzer = new SentimentIntensityAnalyzer();
+        this.distilBertClassifier = new HKDistilBertClassifier(this.knowledgeBase);
+        this.neuralLLM = new HKNeuralLLM(this.knowledgeBase);
         this.compositePipeline = new CompositePipeline(contextManager);
         setupPipelineStages();
     }
@@ -67,6 +71,14 @@ public class MentalHealthPipeline {
         return sentimentAnalyzer;
     }
 
+    public HKDistilBertClassifier getDistilBertClassifier() {
+        return distilBertClassifier;
+    }
+
+    public HKNeuralLLM getNeuralLLM() {
+        return neuralLLM;
+    }
+
     private void setupPipelineStages() {
         // Stage 1: Crisis Safety Net
         compositePipeline.addStage(new PipelineStage("crisis_safety_stage", "classification", "is_crisis") {
@@ -79,7 +91,7 @@ public class MentalHealthPipeline {
             }
         });
 
-        // Stage 2: Sentiment & Intent Routing (3-tier)
+        // Stage 2: Sentiment & DistilBERT Intent Routing
         compositePipeline.addStage(new PipelineStage("intent_sentiment_stage", "nlp", "sentiment_data") {
             @Override
             public Object execute(PipelineContext context, Map<String, Object> paramsOverride, ContextWindowManager contextManager) {
@@ -87,7 +99,15 @@ public class MentalHealthPipeline {
                 Boolean isCrisis = (Boolean) context.get("is_crisis");
                 String lower = (input != null) ? input.toLowerCase() : "";
 
-                // VADER analysis
+                // 1. DistilBERT sequence classification
+                HKDistilBertClassifier.ClassificationResult triage = distilBertClassifier.classify(input);
+                context.put("distilbert_triage", triage);
+                context.put("distilbert_class", triage.riskClass);
+                context.put("distilbert_confidence", triage.confidence);
+                context.put("distilbert_rationale", triage.rationale);
+                context.put("severity_level", triage.severityLevel);
+
+                // 2. VADER micro-sentiment analysis
                 SentimentIntensityAnalyzer.SentimentResult sr = sentimentAnalyzer.analyze(input);
 
                 List<String> signals = new ArrayList<>();
@@ -100,12 +120,13 @@ public class MentalHealthPipeline {
                 String mood;
                 int moraleScore;
 
-                if (Boolean.TRUE.equals(isCrisis)) {
+                if (Boolean.TRUE.equals(isCrisis) || triage.classIndex == 5) {
                     mood = "emergency";
                     moraleScore = 10;
-                } else if (!signals.isEmpty() || sr.moraleScore < 42) {
+                    context.put("is_crisis", true);
+                } else if (triage.classIndex >= 2 || !signals.isEmpty() || sr.moraleScore < 42) {
                     mood = "triage";
-                    moraleScore = Math.max(15, Math.min(50, sr.moraleScore));
+                    moraleScore = Math.max(15, Math.min(50, sr.moraleScore - (triage.severityLevel * 5)));
                 } else if (hasJoyTerms(lower) || sr.moraleScore > 62) {
                     mood = "joy";
                     moraleScore = Math.max(65, Math.min(98, sr.moraleScore));
@@ -119,6 +140,8 @@ public class MentalHealthPipeline {
                 data.put("morale_score", moraleScore);
                 data.put("compound", sr.compound);
                 data.put("signals", signals);
+                data.put("distilbert_class", triage.riskClass);
+                data.put("distilbert_confidence", triage.confidence);
 
                 context.setOutput(getName(), getOutputKey(), data);
                 context.put("mood", mood);
@@ -160,18 +183,26 @@ public class MentalHealthPipeline {
             }
         });
 
-        // Stage 5: Empathetic Generation & Prompt Steering
+        // Stage 5: Neural Generative LLM & Empathetic Dialogue Stage
         compositePipeline.addStage(new PipelineStage("empathetic_generation_stage", "generation", "generated_response") {
             @Override
             public Object execute(PipelineContext context, Map<String, Object> paramsOverride, ContextWindowManager contextManager) {
                 String input = (String) context.get("user_input");
-                Boolean isCrisis = (Boolean) context.get("is_crisis");
-                String mood = (String) context.get("mood");
+                HKDistilBertClassifier.ClassificationResult triage =
+                        (HKDistilBertClassifier.ClassificationResult) context.get("distilbert_triage");
                 KnowledgeBase.SearchResult rag = (KnowledgeBase.SearchResult) context.get("rag_result");
                 String trend = (String) context.get("trajectory_trend");
                 Integer morale = (Integer) context.get("morale_score");
 
-                String response = synthesizeResponse(input, Boolean.TRUE.equals(isCrisis), mood, rag, trend, morale != null ? morale : 50);
+                // Generate response using on-device Neural LLM
+                String response = neuralLLM.generateResponse(
+                        input,
+                        triage,
+                        rag,
+                        morale != null ? morale : 50,
+                        trend != null ? trend : "STABLE"
+                );
+
                 context.setOutput(getName(), getOutputKey(), response);
                 context.put("generated_text", response);
                 context.put("response_text", response);

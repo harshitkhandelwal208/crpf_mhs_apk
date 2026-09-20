@@ -4,6 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/screen_background">
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -11,6 +12,7 @@
         android:orientation="vertical"
         android:padding="20dp"
         android:paddingBottom="96dp">
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -19,45 +21,141 @@
             android:textColor="@color/ink"
             android:textSize="28sp"
             android:textStyle="bold" />
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="start"
             android:layout_marginTop="6dp"
-            android:text="Speak freely. You will review the transcript before anything is saved."
+            android:text="Speak freely. Whisper Base-EN transcribes on-device with zero cloud latency or audio leaks."
             android:textColor="@color/muted_ink"
             android:textSize="14sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="start"
+            android:layout_marginTop="8dp"
+            android:background="@color/teal_surface"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="4dp"
+            android:text="HKNT 1.0.4 • Whisper Base-EN"
+            android:textColor="@color/teal_700"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
         <com.google.android.material.card.MaterialCardView
-            android:layout_width="180dp"
-            android:layout_height="180dp"
-            android:layout_marginTop="48dp"
+            android:id="@+id/voice_mic_card"
+            android:layout_width="160dp"
+            android:layout_height="160dp"
+            android:layout_marginTop="32dp"
             app:cardBackgroundColor="@color/teal_surface"
-            app:cardCornerRadius="90dp">
+            app:cardCornerRadius="80dp">
+
             <TextView
+                android:id="@+id/voice_mic_icon"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:gravity="center"
                 android:text="MIC"
                 android:textColor="@color/teal_700"
-                android:textSize="24sp"
+                android:textSize="26sp"
                 android:textStyle="bold" />
         </com.google.android.material.card.MaterialCardView>
+
+        <TextView
+            android:id="@+id/voice_status_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Ready to record audio"
+            android:textColor="@color/muted_ink"
+            android:textSize="14sp" />
+
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/voice_record_button"
             android:layout_width="match_parent"
             android:layout_height="56dp"
-            android:layout_marginTop="32dp"
+            android:layout_marginTop="24dp"
             android:text="Start speaking"
             android:textAllCaps="false"
             android:textColor="@color/white"
             app:backgroundTint="@color/teal_700"
             app:cornerRadius="12dp" />
-        <TextView
+
+        <!-- Live / Final Transcription Container -->
+        <LinearLayout
+            android:id="@+id/voice_transcript_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="On-Device Transcript Preview"
+                android:textColor="@color/ink"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                app:cardBackgroundColor="@color/white"
+                app:cardCornerRadius="12dp">
+
+                <TextView
+                    android:id="@+id/voice_transcript_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="16dp"
+                    android:textColor="@color/ink"
+                    android:textSize="14sp"
+                    android:textIsSelectable="true" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/voice_save_journal_button"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="6dp"
+                    android:text="Save to Journal"
+                    android:textAllCaps="false"
+                    android:textColor="@color/white"
+                    app:backgroundTint="@color/teal_700"
+                    app:cornerRadius="10dp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/voice_send_companion_button"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="6dp"
+                    android:text="Talk to Companion"
+                    android:textAllCaps="false"
+                    android:textColor="@color/teal_700"
+                    app:backgroundTint="@color/teal_surface"
+                    app:cornerRadius="10dp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
             android:background="@color/surface_warm"
             android:padding="16dp"
-            android:text="Voice processing requires your consent. Your recording is never submitted automatically."
+            android:text="Privacy Guarantee: Voice capture is processed 100% on your device using Whisper Base-EN. No raw audio ever leaves your hardware."
             android:textColor="@color/muted_ink"
             android:textSize="13sp" />
     </LinearLayout>

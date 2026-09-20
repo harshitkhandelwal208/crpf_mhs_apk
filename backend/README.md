@@ -78,7 +78,7 @@ python test_backend_integration.py
 ## Database migrations
 
 Use Alembic through the deployment manager rather than creating production
-schemas during API startup:
+tables as an import-time side effect:
 
 ```bash
 cd backend
@@ -86,9 +86,14 @@ python manage.py migrate
 python manage.py check
 ```
 
-`migrate` upgrades fresh databases and can safely baseline older installations
-that used SQLAlchemy `create_all`. It refuses to complete if Alembic detects
-remaining schema drift.
+`migrate` applies committed revisions only. `check` is an optional development
+command that detects model changes without a migration; it is intentionally not
+run during production startup.
+
+PostgreSQL deployments use the dedicated `crpf_mhs` schema by default. This
+keeps FastAPI tables and its `alembic_version` independent from existing public,
+Prisma, or legacy tables in the same Neon database. Change `DB_SCHEMA` only to
+another dedicated PostgreSQL identifier; never point it at `public`.
 
 Create the first production administrator from environment variables:
 
@@ -113,7 +118,8 @@ The root `render.yaml` defines a Singapore-region FastAPI web service. It:
 - binds Uvicorn to Render's assigned public port with one memory-conscious
   worker;
 - uses `/health/ready` to verify PostgreSQL connectivity; and
-- prompts for the external Neon `DATABASE_URL` instead of storing it in Git.
+- prompts for the external Neon `DATABASE_URL` instead of storing it in Git; and
+- isolates all FastAPI data in the `crpf_mhs` PostgreSQL schema.
 
 Production startup rejects SQLite and weak/default JWT secrets. Android and the
 desktop BFF do not require browser CORS; optional browser origins must be

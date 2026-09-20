@@ -3,8 +3,10 @@ Sentinel Backend - Database session management
 """
 from typing import Any
 
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
+from sqlalchemy.pool import NullPool
+from sqlalchemy.schema import CreateSchema
 
 from app.config import settings
 
@@ -29,7 +31,34 @@ else:
 
 engine = create_engine(settings.DATABASE_URL, **engine_options)
 
+if not is_sqlite:
+    @event.listens_for(engine, "connect")
+    def set_application_schema(dbapi_connection, _connection_record) -> None:
+        """Keep all FastAPI tables isolated from legacy/public database tables."""
+        previous_autocommit = dbapi_connection.autocommit
+        dbapi_connection.autocommit = True
+        try:
+            with dbapi_connection.cursor() as cursor:
+                cursor.execute(
+                    f'SET SESSION search_path TO "{settings.DB_SCHEMA}"'
+                )
+        finally:
+            dbapi_connection.autocommit = previous_autocommit
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+
+def ensure_database_schema() -> None:
+    """Create the dedicated PostgreSQL schema before pooled connections use it."""
+    if is_sqlite:
+        return
+
+    bootstrap_engine = create_engine(settings.DATABASE_URL, poolclass=NullPool)
+    try:
+        with bootstrap_engine.begin() as connection:
+            connection.execute(CreateSchema(settings.DB_SCHEMA, if_not_exists=True))
+    finally:
+        bootstrap_engine.dispose()
 
 
 class Base(DeclarativeBase):

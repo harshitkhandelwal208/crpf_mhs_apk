@@ -17,6 +17,8 @@ import com.example.myapplication.databinding.ActivityMainBinding;
 import com.example.myapplication.models.UserResponse;
 import com.example.myapplication.models.ChatResponse;
 import com.example.myapplication.models.JournalResponse;
+import com.example.myapplication.ai.HKWhisperEngine;
+import com.example.myapplication.ai.SentinelTTSManager;
 import com.example.myapplication.sync.JournalSyncStatus;
 
 import java.util.Calendar;
@@ -24,8 +26,12 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final int REQUEST_RECORD_AUDIO_PERMISSION = 201;
+
     private ActivityMainBinding binding;
     private MainViewModel viewModel;
+    private SentinelTTSManager ttsManager;
+    private HKWhisperEngine whisperEngine;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,6 +45,35 @@ public class MainActivity extends AppCompatActivity {
 
         MainViewModel.Factory factory = new MainViewModel.Factory(authManager, apiService, this);
         viewModel = new ViewModelProvider(this, factory).get(MainViewModel.class);
+
+        ttsManager = new SentinelTTSManager(this);
+        whisperEngine = new HKWhisperEngine(viewModel.getPipeline().getKnowledgeBase());
+
+        ttsManager.setStateListener(new SentinelTTSManager.TTSStateListener() {
+            @Override
+            public void onSpeechStarted() {
+                runOnUiThread(() -> {
+                    View stopBtn = findViewById(R.id.companion_tts_stop_button);
+                    if (stopBtn != null) stopBtn.setVisibility(View.VISIBLE);
+                });
+            }
+
+            @Override
+            public void onSpeechCompleted() {
+                runOnUiThread(() -> {
+                    View stopBtn = findViewById(R.id.companion_tts_stop_button);
+                    if (stopBtn != null) stopBtn.setVisibility(View.GONE);
+                });
+            }
+
+            @Override
+            public void onSpeechError(String message) {
+                runOnUiThread(() -> {
+                    View stopBtn = findViewById(R.id.companion_tts_stop_button);
+                    if (stopBtn != null) stopBtn.setVisibility(View.GONE);
+                });
+            }
+        });
 
         setupListeners();
         observeViewModel();
@@ -62,6 +97,8 @@ public class MainActivity extends AppCompatActivity {
             viewModel.login(email, password);
         });
 
+        binding.registerButton.setOnClickListener(view -> showRegisterDialog());
+
         binding.logoutButton.setOnClickListener(view -> viewModel.logout());
 
         binding.navHome.setOnClickListener(view -> showScreen("home"));
@@ -80,6 +117,16 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.journal_voice_button).setOnClickListener(view -> showScreen("voice"));
         findViewById(R.id.companion_start_button).setOnClickListener(view -> sendCompanionMessage());
         findViewById(R.id.journal_save_button).setOnClickListener(view -> saveJournalEntry());
+
+        // Multimodal AI Action Listeners
+        findViewById(R.id.companion_tts_button).setOnClickListener(view -> playCompanionTTS());
+        findViewById(R.id.companion_tts_stop_button).setOnClickListener(view -> {
+            if (ttsManager != null) ttsManager.stop();
+        });
+        findViewById(R.id.companion_voice_input_button).setOnClickListener(view -> showScreen("voice"));
+        findViewById(R.id.voice_record_button).setOnClickListener(view -> toggleVoiceRecording());
+        findViewById(R.id.voice_save_journal_button).setOnClickListener(view -> saveVoiceTranscriptToJournal());
+        findViewById(R.id.voice_send_companion_button).setOnClickListener(view -> sendVoiceTranscriptToCompanion());
     }
 
     private void observeViewModel() {
@@ -215,6 +262,11 @@ public class MainActivity extends AppCompatActivity {
             public void onSuccess(ChatResponse response) {
                 if (response != null && response.getMessage() != null) {
                     responseText.setText(response.getMessage().getContent());
+                    TextView triageBadge = findViewById(R.id.companion_triage_badge);
+                    if (triageBadge != null && response.getTriageClass() != null) {
+                        triageBadge.setText(String.format("DistilBERT: %s (%.0f%%)",
+                                response.getTriageClass(), response.getConfidence() * 100));
+                    }
                     if (companionInput != null) {
                         companionInput.setText("");
                     }
@@ -317,5 +369,210 @@ public class MainActivity extends AppCompatActivity {
         if (hour < 12) return "Good morning";
         if (hour < 18) return "Good afternoon";
         return "Good evening";
+    }
+
+    private void showRegisterDialog() {
+        android.widget.LinearLayout layout = new android.widget.LinearLayout(this);
+        layout.setOrientation(android.widget.LinearLayout.VERTICAL);
+        layout.setPadding(48, 24, 48, 24);
+
+        final android.widget.EditText serviceInput = new android.widget.EditText(this);
+        serviceInput.setHint("Service Number (e.g. CRPF-98214)");
+        layout.addView(serviceInput);
+
+        final android.widget.EditText nameInput = new android.widget.EditText(this);
+        nameInput.setHint("Full Name (e.g. Amit Sharma)");
+        layout.addView(nameInput);
+
+        final android.widget.EditText rankInput = new android.widget.EditText(this);
+        rankInput.setHint("Rank (e.g. Head Constable)");
+        rankInput.setText("Head Constable");
+        layout.addView(rankInput);
+
+        final android.widget.EditText unitInput = new android.widget.EditText(this);
+        unitInput.setHint("Unit (e.g. 110 Bn CRPF)");
+        unitInput.setText("110 Bn CRPF");
+        layout.addView(unitInput);
+
+        final android.widget.EditText emailInput = new android.widget.EditText(this);
+        emailInput.setHint("Email address");
+        emailInput.setInputType(android.text.InputType.TYPE_TEXT_VARIATION_EMAIL_ADDRESS);
+        layout.addView(emailInput);
+
+        final android.widget.EditText passwordInput = new android.widget.EditText(this);
+        passwordInput.setHint("Password (min 8 chars)");
+        passwordInput.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD);
+        layout.addView(passwordInput);
+
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("New Personnel Registration")
+                .setMessage("Register your personnel profile on the secure CRPF MHS platform.")
+                .setView(layout)
+                .setPositiveButton("Register & Enrol", (dialog, which) -> {
+                    String serviceNo = serviceInput.getText().toString().trim();
+                    String fullName = nameInput.getText().toString().trim();
+                    String rank = rankInput.getText().toString().trim();
+                    String unit = unitInput.getText().toString().trim();
+                    String email = emailInput.getText().toString().trim();
+                    String password = passwordInput.getText().toString();
+
+                    if (TextUtils.isEmpty(serviceNo) || TextUtils.isEmpty(fullName)
+                            || TextUtils.isEmpty(email) || TextUtils.isEmpty(password)) {
+                        Toast.makeText(this, "Please fill in all mandatory registration fields", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+
+                    String[] parts = fullName.split("\\s+", 2);
+                    String firstName = parts[0];
+                    String lastName = parts.length > 1 ? parts[1] : "-";
+
+                    viewModel.register(serviceNo, email, password, firstName, lastName, rank, unit, null);
+                })
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    private void toggleVoiceRecording() {
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO)
+                != android.content.pm.PackageManager.PERMISSION_GRANTED) {
+            androidx.core.app.ActivityCompat.requestPermissions(
+                    this,
+                    new String[]{android.Manifest.permission.RECORD_AUDIO},
+                    REQUEST_RECORD_AUDIO_PERMISSION
+            );
+            return;
+        }
+
+        com.google.android.material.button.MaterialButton recordBtn = findViewById(R.id.voice_record_button);
+        TextView statusText = findViewById(R.id.voice_status_text);
+        View transcriptContainer = findViewById(R.id.voice_transcript_container);
+        TextView transcriptText = findViewById(R.id.voice_transcript_text);
+
+        if (!whisperEngine.isRecording()) {
+            if (transcriptContainer != null) transcriptContainer.setVisibility(View.GONE);
+            boolean started = whisperEngine.startRecording(
+                    (normalizedRms, decibels) -> {
+                        if (statusText != null) {
+                            statusText.setText(String.format("Listening... Audio level: %d dB", decibels));
+                        }
+                    },
+                    new HKWhisperEngine.TranscriptionCallback() {
+                        @Override
+                        public void onPartialTranscription(String partial) {
+                            runOnUiThread(() -> {
+                                if (statusText != null) statusText.setText(partial);
+                            });
+                        }
+
+                        @Override
+                        public void onTranscriptionComplete(String fullText, float confidence) {
+                            runOnUiThread(() -> {
+                                if (statusText != null) {
+                                    statusText.setText(String.format("Whisper Base-EN: Transcribed (%.0f%% confidence)", confidence * 100));
+                                }
+                                if (transcriptText != null) {
+                                    transcriptText.setText(fullText);
+                                }
+                                if (transcriptContainer != null) {
+                                    transcriptContainer.setVisibility(View.VISIBLE);
+                                }
+                                if (recordBtn != null) {
+                                    recordBtn.setText("Start speaking");
+                                }
+                            });
+                        }
+
+                        @Override
+                        public void onError(String errorMessage) {
+                            runOnUiThread(() -> {
+                                if (statusText != null) statusText.setText("Error: " + errorMessage);
+                                if (recordBtn != null) recordBtn.setText("Start speaking");
+                            });
+                        }
+                    }
+            );
+
+            if (started) {
+                if (recordBtn != null) recordBtn.setText("Stop speaking");
+                if (statusText != null) statusText.setText("Listening with Whisper Base-EN...");
+            } else {
+                Toast.makeText(this, "Could not start microphone recording", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            whisperEngine.stopRecording();
+            if (recordBtn != null) recordBtn.setText("Start speaking");
+            if (statusText != null) statusText.setText("Transcribing on-device with Whisper Base-EN...");
+        }
+    }
+
+    private void saveVoiceTranscriptToJournal() {
+        TextView transcriptText = findViewById(R.id.voice_transcript_text);
+        if (transcriptText == null || TextUtils.isEmpty(transcriptText.getText())) return;
+        String content = transcriptText.getText().toString().trim();
+        viewModel.saveJournal(content, "okay", "SUBMITTED", new MainViewModel.LocalResultCallback<>() {
+            @Override
+            public void onSuccess(JournalResponse response) {
+                Toast.makeText(MainActivity.this, "Voice entry saved to private journal!", Toast.LENGTH_SHORT).show();
+                showScreen("journal");
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                Toast.makeText(MainActivity.this, R.string.error_journal_local_save, Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void sendVoiceTranscriptToCompanion() {
+        TextView transcriptText = findViewById(R.id.voice_transcript_text);
+        if (transcriptText == null || TextUtils.isEmpty(transcriptText.getText())) return;
+        String content = transcriptText.getText().toString().trim();
+        showScreen("companion");
+        TextView companionInput = findViewById(R.id.companion_input);
+        if (companionInput != null) {
+            companionInput.setText(content);
+        }
+        sendCompanionMessage();
+    }
+
+    private void playCompanionTTS() {
+        TextView responseText = findViewById(R.id.companion_response_text);
+        if (responseText != null && !TextUtils.isEmpty(responseText.getText()) && ttsManager != null) {
+            ttsManager.speak(responseText.getText().toString());
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_RECORD_AUDIO_PERMISSION) {
+            if (grantResults.length > 0 && grantResults[0] == android.content.pm.PackageManager.PERMISSION_GRANTED) {
+                toggleVoiceRecording();
+            } else {
+                Toast.makeText(this, "Microphone permission is required for voice journaling.", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (ttsManager != null) {
+            ttsManager.stop();
+        }
+        if (whisperEngine != null && whisperEngine.isRecording()) {
+            whisperEngine.stopRecording();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (ttsManager != null) {
+            ttsManager.shutdown();
+        }
+        if (whisperEngine != null && whisperEngine.isRecording()) {
+            whisperEngine.stopRecording();
+        }
     }
 }

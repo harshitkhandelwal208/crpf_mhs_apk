@@ -85,3 +85,4 @@ class Alert(Base):
     personnel = relationship("Personnel", back_populates="alerts")
     assignee = relationship("User", foreign_keys=[assigned_to])
     acknowledger = relationship("User", foreign_keys=[acknowledged_by])
+    interventions = relationship("WelfareIntervention", back_populates="alert", lazy="select")

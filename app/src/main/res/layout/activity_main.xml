@@ -183,6 +183,19 @@
                     app:backgroundTint="@color/auth_navy"
                     app:cornerRadius="12dp" />
 
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/register_button"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/action_create_account"
+                    android:textAllCaps="false"
+                    android:textColor="@color/auth_navy"
+                    android:textSize="14sp"
+                    app:cornerRadius="12dp"
+                    app:strokeColor="@color/auth_navy" />
+
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

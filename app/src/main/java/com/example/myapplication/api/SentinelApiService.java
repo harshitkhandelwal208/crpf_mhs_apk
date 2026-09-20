@@ -21,7 +21,12 @@ import retrofit2.http.Multipart;
 import retrofit2.http.Part;
 import retrofit2.http.POST;
 
+import com.example.myapplication.models.RegisterRequest;
+
 public interface SentinelApiService {
+
+    @POST("api/auth/register")
+    Call<TokenResponse> register(@Body RegisterRequest request);
 
     @POST("api/auth/login")
     Call<TokenResponse> login(@Body LoginRequest request);

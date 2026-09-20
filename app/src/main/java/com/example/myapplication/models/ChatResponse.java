@@ -8,18 +8,30 @@ public class ChatResponse {
     private Message message;
     @SerializedName("support_escalation")
     private boolean supportEscalation;
+    @SerializedName("triage_class")
+    private String triageClass;
+    @SerializedName("confidence")
+    private float confidence;
 
     public ChatResponse() {}
 
     public ChatResponse(String conversationId, String content, boolean supportEscalation) {
+        this(conversationId, content, supportEscalation, "Normal / Resilient", 0.95f);
+    }
+
+    public ChatResponse(String conversationId, String content, boolean supportEscalation, String triageClass, float confidence) {
         this.conversationId = conversationId;
         this.message = new Message(content);
         this.supportEscalation = supportEscalation;
+        this.triageClass = triageClass;
+        this.confidence = confidence;
     }
 
     public String getConversationId() { return conversationId; }
     public Message getMessage() { return message; }
     public boolean isSupportEscalation() { return supportEscalation; }
+    public String getTriageClass() { return triageClass != null ? triageClass : "Normal / Resilient"; }
+    public float getConfidence() { return confidence > 0 ? confidence : 0.9f; }
 
     public static class Message {
         private String id;

@@ -26,7 +26,7 @@ class RefreshToken(Base):
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
     )
-    replaced_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    replaced_by: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     # Relationships
     user = relationship("User", back_populates="refresh_tokens")

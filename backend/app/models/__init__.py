@@ -11,6 +11,9 @@ from app.models.ai import AIConversation, AIMessage
 from app.models.support import SupportRequest, SupportStatus, EmergencyContact, Resource
 from app.models.voice import VoiceEntry
 from app.models.sync_receipt import SyncReceipt
+from app.models.hrms import DutySchedule, LeaveRecord, DeploymentHistory, TransferRecord
+from app.models.biometrics import BiometricReading
+from app.models.intervention import WelfareIntervention
 
 __all__ = [
     "User",
@@ -36,4 +39,10 @@ __all__ = [
     "Resource",
     "VoiceEntry",
     "SyncReceipt",
+    "DutySchedule",
+    "LeaveRecord",
+    "DeploymentHistory",
+    "TransferRecord",
+    "BiometricReading",
+    "WelfareIntervention",
 ]

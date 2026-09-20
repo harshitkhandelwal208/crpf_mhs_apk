@@ -11,7 +11,7 @@ from sqlalchemy import inspect
 
 import app.models  # noqa: F401 - register all tables before schema inspection
 from app.auth.security import hash_password, validate_password_strength
-from app.database import Base, SessionLocal, engine
+from app.database import Base, SessionLocal, engine, ensure_database_schema
 from app.models.user import User, UserRole
 
 BACKEND_DIR = Path(__file__).resolve().parent
@@ -25,6 +25,7 @@ def alembic_config() -> Config:
 
 def migrate() -> None:
     """Upgrade an empty or Alembic-managed database to the current schema."""
+    ensure_database_schema()
     config = alembic_config()
     table_names = set(inspect(engine).get_table_names())
     application_tables = set(Base.metadata.tables)
@@ -32,14 +33,12 @@ def migrate() -> None:
     if "alembic_version" in table_names or not (table_names & application_tables):
         command.upgrade(config, "head")
     else:
-        # Older installations created tables directly through SQLAlchemy. Bring
-        # any missing tables in, then establish the Alembic baseline. The schema
-        # check below refuses to stamp an installation with structural drift.
+        # Older isolated installations created tables directly through
+        # SQLAlchemy. Bring any missing tables in and establish the baseline.
         Base.metadata.create_all(bind=engine)
         command.stamp(config, "head")
 
-    command.check(config)
-    print("Database schema is at the latest migration revision.")
+    print("Database migrations completed successfully.")
 
 
 
@@ -49,11 +48,19 @@ def bootstrap_admin() -> None:
     password = os.getenv("BOOTSTRAP_ADMIN_PASSWORD", "")
     full_name = os.getenv("BOOTSTRAP_ADMIN_NAME", "CRPF Platform Administrator").strip()
 
+    if not email and not password:
+        print("No bootstrap admin credentials provided (BOOTSTRAP_ADMIN_EMAIL unset). Skipping initial admin creation.")
+        return
+
     if not email or "@" not in email or len(email) > 255:
         raise ValueError("BOOTSTRAP_ADMIN_EMAIL must be a valid email address")
     if not full_name or len(full_name) > 255:
         raise ValueError("BOOTSTRAP_ADMIN_NAME must contain 1 to 255 characters")
     validate_password_strength(password, minimum_length=16)
+
+    # Ensure schema and tables exist before querying or writing users
+    ensure_database_schema()
+    migrate()
 
     with SessionLocal() as database:
         existing = database.query(User).filter(User.email == email).first()

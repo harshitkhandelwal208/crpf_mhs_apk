@@ -4,7 +4,7 @@ from alembic import context
 
 import app.models  # noqa: F401 - register every model with Base metadata
 from app.config import settings
-from app.database import Base, engine
+from app.database import Base, engine, ensure_database_schema
 
 config = context.config
 
@@ -31,6 +31,7 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
+    ensure_database_schema()
     with engine.connect() as connection:
         context.configure(
             connection=connection,

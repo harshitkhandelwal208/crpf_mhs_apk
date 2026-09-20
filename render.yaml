@@ -7,7 +7,7 @@ services:
     branch: main
     autoDeployTrigger: commit
     buildCommand: pip install --no-cache-dir -r backend/requirements.txt
-    initialDeployHook: cd backend && python manage.py bootstrap-admin
+    initialDeployHook: cd backend && python manage.py migrate && python manage.py bootstrap-admin
     startCommand: cd backend && python manage.py migrate && exec python -m uvicorn main:app --host 0.0.0.0 --port $PORT --workers 1 --proxy-headers --forwarded-allow-ips=*
     healthCheckPath: /health/ready
     buildFilter:
@@ -27,6 +27,8 @@ services:
         value: "1"
       - key: DATABASE_URL
         sync: false
+      - key: DB_SCHEMA
+        value: crpf_mhs
       - key: SECRET_KEY
         generateValue: true
       - key: BOOTSTRAP_ADMIN_EMAIL

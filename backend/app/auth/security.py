@@ -7,28 +7,26 @@ import uuid
 from datetime import datetime, timedelta, timezone
 
 try:
-    from jose import JWTError, jwt
-except ImportError:
     import jwt
-    JWTError = jwt.PyJWTError
-
-try:
-    from passlib.context import CryptContext
-    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-    def hash_password(password: str) -> str:
-        return pwd_context.hash(password)
-    def verify_password(plain_password: str, hashed_password: str) -> bool:
-        return pwd_context.verify(plain_password, hashed_password)
+    JWTError = getattr(jwt, "PyJWTError", Exception)
 except ImportError:
-    import bcrypt
-    def hash_password(password: str) -> str:
-        salt = bcrypt.gensalt()
-        return bcrypt.hashpw(password.encode("utf-8"), salt).decode("utf-8")
-    def verify_password(plain_password: str, hashed_password: str) -> bool:
-        try:
-            return bcrypt.checkpw(plain_password.encode("utf-8"), hashed_password.encode("utf-8"))
-        except Exception:
-            return False
+    from jose import JWTError, jwt
+
+import bcrypt
+
+def hash_password(password: str) -> str:
+    pwd_bytes = password.encode("utf-8")
+    salt = bcrypt.gensalt(rounds=12)
+    return bcrypt.hashpw(pwd_bytes, salt).decode("utf-8")
+
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    try:
+        return bcrypt.checkpw(
+            plain_password.encode("utf-8"),
+            hashed_password.encode("utf-8"),
+        )
+    except Exception:
+        return False
 
 from sqlalchemy.orm import Session
 

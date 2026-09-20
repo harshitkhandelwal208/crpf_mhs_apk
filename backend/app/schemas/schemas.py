@@ -3,7 +3,8 @@ Pydantic schemas for all API request/response DTOs.
 These define the canonical API contract shared by Android and Web clients.
 """
 from datetime import datetime
-from pydantic import BaseModel, EmailStr, Field, model_validator
+from typing import Any, Dict, List, Optional
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
 
 from app.models.user import UserRole
 from app.models.personnel import PersonnelStatus, RiskLevel
@@ -39,6 +40,17 @@ class RefreshRequest(BaseModel):
     refresh_token: str
 
 
+class RegisterRequest(BaseModel):
+    service_number: str = Field(..., min_length=3, max_length=50)
+    email: EmailStr
+    password: str = Field(..., min_length=8)
+    first_name: str = Field(..., min_length=1, max_length=100)
+    last_name: str = Field(..., min_length=1, max_length=100)
+    rank: str = Field(..., min_length=1, max_length=50)
+    unit: str = Field(..., min_length=1, max_length=100)
+    phone: str | None = None
+
+
 # ──────────────────────────── User ────────────────────────────
 
 class UserResponse(BaseModel):
@@ -53,8 +65,7 @@ class UserResponse(BaseModel):
     permissions: list["PermissionResponse"] = []
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class UserCreateRequest(BaseModel):
@@ -79,8 +90,7 @@ class PermissionResponse(BaseModel):
     granted: bool
     granted_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PermissionGrantRequest(BaseModel):
@@ -105,8 +115,7 @@ class PersonnelResponse(BaseModel):
     last_check_in: datetime | None = None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PersonnelDetailResponse(PersonnelResponse):
@@ -154,8 +163,7 @@ class AlertResponse(BaseModel):
     escalation_required: bool = False
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AlertCreateRequest(BaseModel):
@@ -255,8 +263,7 @@ class AuditLogResponse(BaseModel):
     details: str | None = None
     timestamp: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AuditLogListResponse(BaseModel):
@@ -279,8 +286,7 @@ class JournalResponse(BaseModel):
     is_flagged: bool = False
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class JournalListResponse(BaseModel):
@@ -299,8 +305,7 @@ class AssessmentResponse(BaseModel):
     assessed_by: str | None = None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AssessmentListResponse(BaseModel):
@@ -360,8 +365,7 @@ class ConversationResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 # ──────────────────────────── Journals ────────────────────────────
@@ -381,8 +385,7 @@ class JournalItem(BaseModel):
     status: str
     created_at: str | datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class JournalMobileResponse(BaseModel):
@@ -416,8 +419,7 @@ class SupportRequestItem(BaseModel):
     status: str
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class EmergencyContactResponse(BaseModel):
@@ -426,8 +428,7 @@ class EmergencyContactResponse(BaseModel):
     description: str
     contact: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class ResourceResponse(BaseModel):
@@ -437,6 +438,159 @@ class ResourceResponse(BaseModel):
     category: str
     body: str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
+
+
+# ──────────────────────────── HRMS Operational Models ────────────────────────────
+
+class DutyScheduleCreate(BaseModel):
+    shift_type: str = "REGULAR"
+    hours_worked: float = 8.0
+    consecutive_days_on_duty: int = 1
+    is_overtime: bool = False
+    notes: str | None = None
+
+
+class DutyScheduleResponse(BaseModel):
+    id: str
+    personnel_id: str
+    date: datetime
+    shift_type: str
+    hours_worked: float
+    consecutive_days_on_duty: int
+    is_overtime: bool
+    notes: str | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class LeaveRecordCreate(BaseModel):
+    leave_type: str = "CASUAL"
+    start_date: datetime | None = None
+    end_date: datetime | None = None
+    status: str = "PENDING"
+    rejection_reason: str | None = None
+    days_since_last_leave: int | None = None
+
+
+class LeaveRecordResponse(BaseModel):
+    id: str
+    personnel_id: str
+    leave_type: str
+    applied_date: datetime
+    start_date: datetime | None = None
+    end_date: datetime | None = None
+    status: str
+    rejection_reason: str | None = None
+    days_since_last_leave: int | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class DeploymentCreate(BaseModel):
+    deployment_name: str
+    terrain_type: str = "STANDARD"
+    hard_posting: bool = True
+    start_date: datetime
+    end_date: datetime | None = None
+    duration_months: float | None = None
+    family_separation_months: float | None = None
+
+
+class DeploymentResponse(BaseModel):
+    id: str
+    personnel_id: str
+    deployment_name: str
+    terrain_type: str
+    hard_posting: bool
+    start_date: datetime
+    end_date: datetime | None = None
+    duration_months: float | None = None
+    family_separation_months: float | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class HRMSProfileResponse(BaseModel):
+    personnel_id: str
+    operational_stress_score: float
+    burnout_level: str
+    contributing_factors: dict[str, float]
+    metrics: dict[str, Any]
+    insights: list[str]
+    recommendations: list[str]
+
+
+# ──────────────────────────── Biometrics / Wearable Telemetry ────────────────────────────
+
+class BiometricIngestRequest(BaseModel):
+    resting_heart_rate: float | None = None
+    heart_rate_variability: float | None = None
+    sleep_hours: float | None = None
+    sleep_quality_score: float | None = None
+    deep_sleep_minutes: int | None = None
+    rem_sleep_minutes: int | None = None
+    stress_index: float | None = None
+    step_count: int | None = None
+    device_source: str = "VOLUNTARY_WEARABLE"
+
+
+class BiometricResponse(BaseModel):
+    id: str
+    personnel_id: str
+    timestamp: datetime
+    resting_heart_rate: float | None = None
+    heart_rate_variability: float | None = None
+    sleep_hours: float | None = None
+    sleep_quality_score: float | None = None
+    deep_sleep_minutes: int | None = None
+    rem_sleep_minutes: int | None = None
+    stress_index: float | None = None
+    step_count: int | None = None
+    device_source: str | None = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class BiometricTrendsResponse(BaseModel):
+    personnel_id: str
+    readings: list[BiometricResponse]
+    avg_sleep_hours: float
+    avg_stress_index: float
+    wearable_paired: bool
+
+
+# ──────────────────────────── Welfare Interventions ────────────────────────────
+
+class WelfareInterventionResponse(BaseModel):
+    id: str
+    personnel_id: str
+    alert_id: str | None = None
+    category: str
+    title: str
+    description: str
+    action_plan: str
+    priority: str
+    status: str
+    recommended_by_xai: bool
+    contributing_factors: str | None = None
+    outcome_notes: str | None = None
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class InterventionStatusUpdate(BaseModel):
+    status: str
+    outcome_notes: str | None = None
+
+
+class HolisticRiskAssessmentResponse(BaseModel):
+    personnel_id: str
+    composite_risk_score: float
+    risk_level: str
+    xai_factor_breakdown: dict[str, float]
+    hrms_details: dict[str, Any]
+    timestamp: str
 

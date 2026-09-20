@@ -19,6 +19,7 @@ import com.example.myapplication.models.ChatRequest;
 import com.example.myapplication.models.ChatResponse;
 import com.example.myapplication.models.JournalResponse;
 import com.example.myapplication.models.LoginRequest;
+import com.example.myapplication.models.RegisterRequest;
 import com.example.myapplication.models.TokenResponse;
 import com.example.myapplication.models.UserResponse;
 import com.example.myapplication.sync.JournalSyncMonitor;
@@ -148,6 +149,42 @@ public class MainViewModel extends ViewModel {
         });
     }
 
+    public void register(String serviceNumber, String email, String password,
+                         String firstName, String lastName, String rank,
+                         String unit, String phone) {
+        _errorMessageResId.setValue(null);
+        _isLoading.setValue(true);
+
+        Call<TokenResponse> call = apiService.register(
+            new RegisterRequest(serviceNumber, email, password, firstName, lastName, rank, unit, phone)
+        );
+        call.enqueue(new Callback<>() {
+            @Override
+            public void onResponse(@NonNull Call<TokenResponse> call, @NonNull Response<TokenResponse> response) {
+                TokenResponse tokens = response.body();
+                if (!response.isSuccessful() || tokens == null || tokens.getAccessToken() == null) {
+                    _isLoading.setValue(false);
+                    _errorMessageResId.setValue(R.string.error_register_failed);
+                    return;
+                }
+
+                authManager.saveTokens(tokens.getAccessToken(), tokens.getRefreshToken());
+                if (localRepo != null) {
+                    localRepo.clearActiveProfile();
+                }
+                _userProfile.setValue(null);
+                _isLoggedIn.setValue(true);
+                loadProfileFromNetwork(false);
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<TokenResponse> call, @NonNull Throwable throwable) {
+                _isLoading.setValue(false);
+                _errorMessageResId.setValue(R.string.error_connection);
+            }
+        });
+    }
+
     private void attemptOfflineLogin(String email, String password, int failureMessage) {
         if (localRepo == null) {
             _isLoading.setValue(false);
@@ -262,12 +299,23 @@ public class MainViewModel extends ViewModel {
                     }
                 }
 
+                String triageClass = context.getString("distilbert_class", "Normal / Resilient");
+                float confidence = 0.92f;
+                Object confObj = context.get("distilbert_confidence");
+                if (confObj instanceof Float) {
+                    confidence = (Float) confObj;
+                } else if (confObj instanceof Double) {
+                    confidence = ((Double) confObj).floatValue();
+                }
+
                 ChatResponse localResponse = new ChatResponse(
                         conversationId != null
                                 ? conversationId
                                 : "local-conv-" + System.currentTimeMillis(),
                         responseText,
-                        isCrisis
+                        isCrisis,
+                        triageClass,
+                        confidence
                 );
                 mainHandler.post(() -> callback.onSuccess(localResponse));
             } catch (RuntimeException exception) {

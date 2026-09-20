@@ -27,6 +27,9 @@ from app.routers import (
     voice,
     support,
     admin_console,
+    hrms,
+    biometrics,
+    interventions,
 )
 
 logger = logging.getLogger(__name__)
@@ -78,6 +81,9 @@ all_routers = [
     voice.router,
     support.router,
     admin_console.router,
+    hrms.router,
+    biometrics.router,
+    interventions.router,
 ]
 
 # Mount under /api (for Android APK Retrofit client and Next.js)

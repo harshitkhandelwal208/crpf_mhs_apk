@@ -24,7 +24,7 @@ async def list_audit_logs(
     resource_type: str | None = Query(None),
     user_id: str | None = Query(None),
     search: str | None = Query(None, description="Search in action or details"),
-    sort_order: str = Query("desc", regex="^(asc|desc)$"),
+    sort_order: str = Query("desc", pattern="^(asc|desc)$"),
     current_user: User = Depends(require_role(UserRole.ADMIN)),
     db: Session = Depends(get_db),
 ):

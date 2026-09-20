@@ -68,6 +68,12 @@ class Personnel(Base):
     alerts = relationship("Alert", back_populates="personnel", lazy="select")
     journals = relationship("Journal", back_populates="personnel", lazy="select")
     assessments = relationship("Assessment", back_populates="personnel", lazy="select")
+    duty_schedules = relationship("DutySchedule", back_populates="personnel", lazy="select")
+    leave_records = relationship("LeaveRecord", back_populates="personnel", lazy="select")
+    deployments = relationship("DeploymentHistory", back_populates="personnel", lazy="select")
+    transfers = relationship("TransferRecord", back_populates="personnel", lazy="select")
+    biometrics = relationship("BiometricReading", back_populates="personnel", lazy="select")
+    interventions = relationship("WelfareIntervention", back_populates="personnel", lazy="select")
 
     @property
     def full_name(self) -> str:

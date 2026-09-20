@@ -30,7 +30,7 @@ async def list_personnel(
     risk_level: RiskLevel | None = Query(None),
     unit: str | None = Query(None),
     sort_by: str = Query("last_name", description="Sort field"),
-    sort_order: str = Query("asc", regex="^(asc|desc)$"),
+    sort_order: str = Query("asc", pattern="^(asc|desc)$"),
     current_user: User = Depends(require_role(UserRole.SUPERVISOR)),
     db: Session = Depends(get_db),
 ):

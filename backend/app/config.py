@@ -2,6 +2,7 @@
 Sentinel Backend - Configuration
 """
 import json
+import re
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -43,6 +44,7 @@ class Settings(BaseSettings):
 
     # Database
     DATABASE_URL: str = f"sqlite:///{(BACKEND_DIR / 'sentinel.db').as_posix()}"
+    DB_SCHEMA: str = "crpf_mhs"
     DB_POOL_SIZE: int = 5
     DB_MAX_OVERFLOW: int = 5
     DB_POOL_TIMEOUT_SECONDS: int = 15
@@ -55,6 +57,16 @@ class Settings(BaseSettings):
         if database_url.startswith("postgres://"):
             return "postgresql://" + database_url.removeprefix("postgres://")
         return database_url
+
+    @field_validator("DB_SCHEMA")
+    @classmethod
+    def validate_database_schema(cls, value: str) -> str:
+        schema = value.strip()
+        if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]{0,62}", schema):
+            raise ValueError("DB_SCHEMA must be a valid PostgreSQL identifier")
+        if schema.lower() in {"information_schema", "pg_catalog", "pg_toast", "public"}:
+            raise ValueError("DB_SCHEMA must be a dedicated application schema")
+        return schema
 
     # JWT
     SECRET_KEY: str = "dev-secret-key-change-in-production-immediately"
@@ -108,8 +120,11 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def validate_production_security(self):
         if self.ENV == "production":
-            if self.DATABASE_URL.startswith("sqlite"):
-                raise ValueError("Production DATABASE_URL must use PostgreSQL")
+            if not self.DATABASE_URL or not (
+                self.DATABASE_URL.startswith("postgresql://")
+                or self.DATABASE_URL.startswith("postgres://")
+            ):
+                raise ValueError("Production DATABASE_URL must be a valid PostgreSQL connection string")
             if (
                 self.SECRET_KEY == "dev-secret-key-change-in-production-immediately"
                 or len(self.SECRET_KEY) < 32

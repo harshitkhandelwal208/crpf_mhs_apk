@@ -89,6 +89,7 @@ import string
 import base64
 import hashlib
 import os
+from datetime import datetime
 from PIL import Image
 
 
@@ -339,6 +340,72 @@ def decrypt_image(input_path: str, output_dir: str) -> dict:
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+#  HKNT 1.0.4 BINARY PACKAGE INTEGRATION
+# ═══════════════════════════════════════════════════════════════════════════════
+
+try:
+    import numpy as np
+    from backend.app.ai.hk_format import save_hk, load_hk, HKModelPackage
+except ImportError:
+    import sys
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), "backend"))
+    try:
+        import numpy as np
+        from app.ai.hk_format import save_hk, load_hk, HKModelPackage
+    except ImportError:
+        save_hk = None
+        load_hk = None
+
+
+def export_cipher_to_hk(filepath: str, text_payload: str = "", metadata: dict = None) -> str:
+    """
+    Serializes encrypted payloads into the official HKNT 1.0.4 binary format (.hk).
+    Conforms to 128-byte aligned header and hardware SIMD boundaries.
+    """
+    if save_hk is None:
+        raise RuntimeError("HKNT 1.0.4 serializer unavailable (numpy or hk_format missing).")
+
+    meta = dict(metadata or {})
+    meta.setdefault("format", "HKNT-1.0.4")
+    meta.setdefault("hknt_version", "1.0.4")
+    meta.setdefault("app", "CipherVault / CRPF MHS Desktop")
+    meta.setdefault("created_at", datetime.now().isoformat())
+    meta.setdefault("payload_type", "text_cipher")
+
+    # Encode characters as uint8 / int32 tensor
+    encoded_bytes = text_payload.encode("utf-8")
+    tensor_arr = np.frombuffer(encoded_bytes, dtype=np.uint8) if len(encoded_bytes) > 0 else np.zeros((1,), dtype=np.uint8)
+
+    tensors = {
+        "cipher_payload": tensor_arr,
+    }
+
+    save_hk(filepath, tensors=tensors, metadata=meta)
+    return filepath
+
+
+def import_cipher_from_hk(filepath: str) -> dict:
+    """
+    Loads encrypted payloads directly from an HKNT 1.0.4 binary package.
+    """
+    if load_hk is None:
+        raise RuntimeError("HKNT 1.0.4 deserializer unavailable.")
+
+    pkg = load_hk(filepath)
+    raw_arr = pkg.get("cipher_payload")
+    if raw_arr is not None:
+        payload_text = bytes(raw_arr.tobytes()).decode("utf-8", errors="replace")
+    else:
+        payload_text = ""
+
+    return {
+        "text": payload_text,
+        "metadata": pkg.metadata,
+        "spec_version": pkg.spec_version,
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 #  UTILITY: Algorithm metadata for UI display
 # ═══════════════════════════════════════════════════════════════════════════════
 
@@ -361,4 +428,11 @@ ALGORITHM_INFO = {
         'hash': 'MD5 (truncated to 32 bits)',
         'scan_order': 'Raster (left→right, top→bottom)',
     },
+    'format': {
+        'name': 'HKNT 1.0.4 Neural Tensor Format',
+        'spec': '1.0.4',
+        'alignment': '128-byte hardware alignment',
+        'header_size': '128 bytes',
+        'compatible': 'Android APK & Desktop Suite',
+    }
 }

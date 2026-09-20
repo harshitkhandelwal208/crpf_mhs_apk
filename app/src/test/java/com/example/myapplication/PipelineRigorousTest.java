@@ -1,6 +1,9 @@
 package com.example.myapplication;
 
 import com.example.myapplication.ai.CrisisSafetyNet;
+import com.example.myapplication.ai.HKDistilBertClassifier;
+import com.example.myapplication.ai.HKNeuralLLM;
+import com.example.myapplication.ai.HKWhisperEngine;
 import com.example.myapplication.ai.KnowledgeBase;
 import com.example.myapplication.ai.MentalHealthPipeline;
 import com.example.myapplication.ai.SentimentIntensityAnalyzer;
@@ -242,5 +245,129 @@ public class PipelineRigorousTest {
         System.out.println("------------------------------------------------------------\n");
 
         assertTrue("Average pipeline latency should be snappy (<100ms)", avgLatency < 100.0);
+    }
+
+    @Test
+    public void testMultimodalHknt104Loading() throws Exception {
+        System.out.println("\n========== TEST: MULTIMODAL HKNT 1.0.4 PACKAGE LOADING ==========");
+        File hkFile = new File("src/main/assets/sentinel_mental_health.hk");
+        assertTrue("HK binary asset must exist at " + hkFile.getAbsolutePath(), hkFile.exists());
+
+        KnowledgeBase hkKb = new KnowledgeBase();
+        try (InputStream is = new FileInputStream(hkFile)) {
+            boolean loaded = hkKb.loadFromHkStream(is);
+            assertTrue("HKNT binary stream must load successfully", loaded);
+        }
+
+        assertTrue("Knowledge base must report loaded", hkKb.isLoaded());
+        assertEquals("Must load all 24 protocols", 24, hkKb.getProtocolCount());
+
+        // Verify all multimodal tensors are present
+        assertTrue("Must contain embeddings tensor", hkKb.hasTensor("embeddings"));
+        assertTrue("Must contain triage_weights tensor", hkKb.hasTensor("triage_weights"));
+        assertTrue("Must contain triage_bias tensor", hkKb.hasTensor("triage_bias"));
+        assertTrue("Must contain distilbert_dense tensor", hkKb.hasTensor("distilbert_dense"));
+        assertTrue("Must contain llm_vocab_embeddings tensor", hkKb.hasTensor("llm_vocab_embeddings"));
+        assertTrue("Must contain llm_attention tensor", hkKb.hasTensor("llm_attention"));
+        assertTrue("Must contain whisper_mel_filters tensor", hkKb.hasTensor("whisper_mel_filters"));
+        assertTrue("Must contain whisper_acoustic_vocab tensor", hkKb.hasTensor("whisper_acoustic_vocab"));
+
+        // Verify Whisper Base-EN mel filter shape: [80, 257]
+        long[] melShape = hkKb.getTensorShape("whisper_mel_filters");
+        assertNotNull("Mel filterbank shape must exist", melShape);
+        assertEquals("Mel filterbank must have 2 dimensions", 2, melShape.length);
+        assertEquals("Mel filterbank must have 80 channels", 80, melShape[0]);
+        assertEquals("Mel filterbank must have 257 frequency bins (n_fft/2 + 1)", 257, melShape[1]);
+
+        System.out.printf("[HKNT MULTIMODAL] Verified 8 tensors including Whisper Base-EN mel filterbank (80x257)%n");
+    }
+
+    @Test
+    public void testDistilBertClassifierSequenceTriage() throws Exception {
+        System.out.println("\n========== TEST: DISTILBERT TRANSFORMER SEQUENCE CLASSIFIER ==========");
+        File hkFile = new File("src/main/assets/sentinel_mental_health.hk");
+        KnowledgeBase hkKb = new KnowledgeBase();
+        try (InputStream is = new FileInputStream(hkFile)) {
+            hkKb.loadFromHkStream(is);
+        }
+
+        HKDistilBertClassifier classifier = new HKDistilBertClassifier(hkKb);
+
+        // 1. Normal input
+        HKDistilBertClassifier.ClassificationResult resNormal = classifier.classify("Completed standard drill and morning PT feeling healthy and energized");
+        System.out.println("[DISTILBERT] Normal input -> " + resNormal);
+        assertEquals("Expected Normal class", "Normal / Resilient", resNormal.riskClass);
+        assertTrue("Confidence should be positive", resNormal.confidence > 0.4f);
+
+        // 2. Burnout input
+        HKDistilBertClassifier.ClassificationResult resBurnout = classifier.classify("Exhausted from prolonged shift, double duty, extreme fatigue and burnout");
+        System.out.println("[DISTILBERT] Burnout input -> " + resBurnout);
+        assertEquals("Expected Burnout class", "Operational Burnout / Fatigue", resBurnout.riskClass);
+        assertEquals("Severity level must be 2", 2, resBurnout.severityLevel);
+
+        // 3. Trauma / PTSD input
+        HKDistilBertClassifier.ClassificationResult resTrauma = classifier.classify("Having severe nightmare and shaking flashback from yesterday ambush and blast on patrol");
+        System.out.println("[DISTILBERT] PTSD input -> " + resTrauma);
+        assertEquals("Expected PTSD class", "PTSD / Trauma Reaction", resTrauma.riskClass);
+        assertEquals("Severity level must be 4", 4, resTrauma.severityLevel);
+
+        // 4. Critical Crisis input
+        HKDistilBertClassifier.ClassificationResult resCrisis = classifier.classify("I cannot go on, I want to commit suicide and end it all");
+        System.out.println("[DISTILBERT] Crisis input -> " + resCrisis);
+        assertEquals("Expected Crisis class", "Critical Psychological Crisis", resCrisis.riskClass);
+        assertEquals("Severity level must be 5", 5, resCrisis.severityLevel);
+    }
+
+    @Test
+    public void testWhisperBaseEnLogMelFilterbankExtraction() throws Exception {
+        System.out.println("\n========== TEST: WHISPER BASE-EN AUDIO LOG-MEL SPECTROGRAM ==========");
+        File hkFile = new File("src/main/assets/sentinel_mental_health.hk");
+        KnowledgeBase hkKb = new KnowledgeBase();
+        try (InputStream is = new FileInputStream(hkFile)) {
+            hkKb.loadFromHkStream(is);
+        }
+
+        HKWhisperEngine whisperEngine = new HKWhisperEngine(hkKb);
+
+        // Generate 1 second of synthetic 16kHz test sine wave audio (440 Hz standard tone)
+        int sampleRate = 16000;
+        float[] testSignal = new float[sampleRate];
+        for (int i = 0; i < sampleRate; i++) {
+            testSignal[i] = (float) Math.sin(2.0 * Math.PI * 440.0 * i / sampleRate);
+        }
+
+        float[][] melSpectrogram = whisperEngine.computeLogMelSpectrogram(testSignal);
+        assertNotNull("Mel spectrogram must not be null", melSpectrogram);
+        assertTrue("Mel spectrogram must have frames", melSpectrogram.length > 0);
+        assertEquals("Each frame must have exactly 80 Mel bins (Whisper Base-EN)", 80, melSpectrogram[0].length);
+
+        System.out.printf("[WHISPER BASE-EN] Generated Log-Mel spectrogram with %d frames and %d mel bands%n",
+                melSpectrogram.length, melSpectrogram[0].length);
+    }
+
+    @Test
+    public void testNeuralLLMEmpatheticGeneration() throws Exception {
+        System.out.println("\n========== TEST: NEURAL GENERATIVE LLM EMPATHY ==========");
+        File hkFile = new File("src/main/assets/sentinel_mental_health.hk");
+        KnowledgeBase hkKb = new KnowledgeBase();
+        try (InputStream is = new FileInputStream(hkFile)) {
+            hkKb.loadFromHkStream(is);
+        }
+
+        HKDistilBertClassifier classifier = new HKDistilBertClassifier(hkKb);
+        HKNeuralLLM llm = new HKNeuralLLM(hkKb);
+
+        String prompt = "Feeling overwhelmed by sleep deprivation and night duty operational tempo.";
+        HKDistilBertClassifier.ClassificationResult triage = classifier.classify(prompt);
+        KnowledgeBase.SearchResult rag = hkKb.search(prompt, 0.2f, 200);
+
+        String response = llm.generateResponse(prompt, triage, rag, 38, "DECLINING");
+        System.out.println("[NEURAL LLM OUTPUT]:\n" + response);
+
+        assertNotNull("Generated response must not be null", response);
+        assertTrue("Response must have empathetic content", response.length() > 60);
+        assertTrue("Response must address operational fatigue/rest",
+                response.toLowerCase().contains("fatigue") || response.toLowerCase().contains("rest") ||
+                response.toLowerCase().contains("duty") || response.toLowerCase().contains("breath"));
     }
 }

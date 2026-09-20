@@ -20,4 +20,8 @@
     <string name="error_companion_unavailable">Your on-device companion is unavailable right now. Please try again or contact support.</string>
     <string name="msg_journal_saved_locally">Your private entry was saved on this device. Cloud sync will follow when available.</string>
     <string name="error_journal_local_save">We could not save this entry on your device. Please try again.</string>
+    <string name="action_create_account">Create Personnel Account</string>
+    <string name="action_register">Register &amp; Enrol</string>
+    <string name="msg_account_created">Account created successfully. Welcome to CRPF MHS.</string>
+    <string name="error_register_failed">Registration failed. Ensure email and service number are unique.</string>
 </resources>
