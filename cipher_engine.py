@@ -365,6 +365,10 @@ def export_cipher_to_hk(filepath: str, text_payload: str = "", metadata: dict = 
     if save_hk is None:
         raise RuntimeError("HKNT 1.0.4 serializer unavailable (numpy or hk_format missing).")
 
+    # Support flexible parameter ordering (payload, filepath) or (filepath, payload)
+    if not filepath.endswith(".hk") and (text_payload.endswith(".hk") or ".hk" in text_payload):
+        filepath, text_payload = text_payload, filepath
+
     meta = dict(metadata or {})
     meta.setdefault("format", "HKNT-1.0.4")
     meta.setdefault("hknt_version", "1.0.4")
